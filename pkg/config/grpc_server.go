@@ -9,9 +9,11 @@ import (
 
 type GRPCServerConfig struct {
 	EnableGRPCServer      bool          `json:"enable_grpc_server"`
+	EnableTLS             bool          `json:"enable_grpc_tls"`
 	TLSCertFile           string        `json:"grpc_tls_cert_file"`
 	TLSKeyFile            string        `json:"grpc_tls_key_file"`
-	EnableTLS             bool          `json:"enable_grpc_tls"`
+	EnableMTLS            bool          `json:"enable_grpc_mtls"`
+	ClientCAFile          string        `json:"grpc_client_ca_file"`
 	ServerBindPort        string        `json:"server_bind_port"`
 	BrokerBindPort        string        `json:"broker_bind_port"`
 	MaxConcurrentStreams  uint32        `json:"max_concurrent_steams"`
@@ -38,7 +40,9 @@ func (s *GRPCServerConfig) AddFlags(fs *pflag.FlagSet) {
 	fs.DurationVar(&s.MaxConnectionAge, "grpc-max-connection-age", time.Duration(math.MaxInt64), "A duration for the maximum amount of time connection may exist before closing")
 	fs.IntVar(&s.WriteBufferSize, "grpc-write-buffer-size", 32*1024, "gPRC write buffer size")
 	fs.IntVar(&s.ReadBufferSize, "grpc-read-buffer-size", 32*1024, "gPRC read buffer size")
+	fs.BoolVar(&s.EnableTLS, "enable-grpc-tls", false, "Enable TLS for gRPC server")
 	fs.StringVar(&s.TLSCertFile, "grpc-tls-cert-file", "", "The path to the tls.crt file")
 	fs.StringVar(&s.TLSKeyFile, "grpc-tls-key-file", "", "The path to the tls.key file")
-	fs.BoolVar(&s.EnableTLS, "enable-grpc-tls", false, "Enable TLS for gRPC server")
+	fs.BoolVar(&s.EnableMTLS, "enable-grpc-mtls", false, "Enable mTLS for gRPC server")
+	fs.StringVar(&s.ClientCAFile, "grpc-client-ca-file", "", "The path to the client ca file")
 }

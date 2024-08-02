@@ -13,28 +13,30 @@ import (
 )
 
 type ApplicationConfig struct {
-	HTTPServer    *HTTPServerConfig    `json:"http_server"`
-	GRPCServer    *GRPCServerConfig    `json:"grpc_server"`
-	Metrics       *MetricsConfig       `json:"metrics"`
-	HealthCheck   *HealthCheckConfig   `json:"health_check"`
-	PulseServer   *PulseServerConfig   `json:"pulse_server"`
-	Database      *DatabaseConfig      `json:"database"`
-	MessageBroker *MessageBrokerConfig `json:"message_broker"`
-	OCM           *OCMConfig           `json:"ocm"`
-	Sentry        *SentryConfig        `json:"sentry"`
+	HTTPServer     *HTTPServerConfig     `json:"http_server"`
+	GRPCServer     *GRPCServerConfig     `json:"grpc_server"`
+	Metrics        *MetricsConfig        `json:"metrics"`
+	HealthCheck    *HealthCheckConfig    `json:"health_check"`
+	PulseServer    *PulseServerConfig    `json:"pulse_server"`
+	Database       *DatabaseConfig       `json:"database"`
+	MessageBroker  *MessageBrokerConfig  `json:"message_broker"`
+	OCM            *OCMConfig            `json:"ocm"`
+	Sentry         *SentryConfig         `json:"sentry"`
+	GRPCAuthorizer *GRPCAuthorizerConfig `json:"grpc_authorizer"`
 }
 
 func NewApplicationConfig() *ApplicationConfig {
 	return &ApplicationConfig{
-		HTTPServer:    NewHTTPServerConfig(),
-		GRPCServer:    NewGRPCServerConfig(),
-		Metrics:       NewMetricsConfig(),
-		HealthCheck:   NewHealthCheckConfig(),
-		PulseServer:   MewPulseServerConfig(),
-		Database:      NewDatabaseConfig(),
-		MessageBroker: NewMessageBrokerConfig(),
-		OCM:           NewOCMConfig(),
-		Sentry:        NewSentryConfig(),
+		HTTPServer:     NewHTTPServerConfig(),
+		GRPCServer:     NewGRPCServerConfig(),
+		Metrics:        NewMetricsConfig(),
+		HealthCheck:    NewHealthCheckConfig(),
+		PulseServer:    MewPulseServerConfig(),
+		Database:       NewDatabaseConfig(),
+		MessageBroker:  NewMessageBrokerConfig(),
+		OCM:            NewOCMConfig(),
+		Sentry:         NewSentryConfig(),
+		GRPCAuthorizer: NewGRPCAuthorizerConfig(),
 	}
 }
 
@@ -49,6 +51,7 @@ func (c *ApplicationConfig) AddFlags(flagset *pflag.FlagSet) {
 	c.MessageBroker.AddFlags(flagset)
 	c.OCM.AddFlags(flagset)
 	c.Sentry.AddFlags(flagset)
+	c.GRPCAuthorizer.AddFlags(flagset)
 }
 
 func (c *ApplicationConfig) ReadFiles() []string {
