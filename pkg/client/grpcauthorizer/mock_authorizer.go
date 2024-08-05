@@ -13,6 +13,6 @@ func NewMockGRPCAuthorizer() GRPCAuthorizer {
 var _ GRPCAuthorizer = &MockGRPCAuthorizer{}
 
 // SelfAccessReview returns allowed=true for every request
-func (m *MockGRPCAuthorizer) AccessReview(ctx context.Context, action, resourceType, resource, user, group string) (allowed bool, err error) {
+func (m *MockGRPCAuthorizer) AccessReview(ctx context.Context, action, resourceType, resource, user string, groups []string) (allowed bool, err error) {
 	return true, nil
 }

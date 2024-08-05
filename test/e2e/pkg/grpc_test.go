@@ -27,7 +27,6 @@ import (
 
 var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 	Context("GRPC Manifest Tests", func() {
-		source := "grpc-e2e"
 		resourceID := uuid.NewString()
 		resourceStatus := &api.ResourceStatus{
 			ReconcileStatus: &api.ReconcileStatus{},
@@ -35,7 +34,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 
 		It("subscribe to resource status with grpc client", func() {
 			go func() {
-				subClient, err := grpcClient.Subscribe(ctx, &pbv1.SubscriptionRequest{Source: source})
+				subClient, err := grpcClient.Subscribe(ctx, &pbv1.SubscriptionRequest{Source: sourceID})
 				if err != nil {
 					return
 				}
@@ -95,7 +94,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 		})
 
 		It("publish a resource spec using grpc client", func() {
-			evt, err := helper.ManifestToEvent(1, source, "create_request", consumer.Name, resourceID, 1, false)
+			evt, err := helper.ManifestToEvent(1, sourceID, "create_request", consumer.Name, resourceID, 1, false)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			pbEvt := &pbv1.CloudEvent{}
@@ -156,7 +155,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 		})
 
 		It("publish a resource spec with update request using grpc client", func() {
-			evt, err := helper.ManifestToEvent(2, source, "update_request", consumer.Name, resourceID, 1, false)
+			evt, err := helper.ManifestToEvent(2, sourceID, "update_request", consumer.Name, resourceID, 1, false)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			pbEvt := &pbv1.CloudEvent{}
@@ -217,7 +216,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 		})
 
 		It("publish a resource spec with delete request using grpc client", func() {
-			evt, err := helper.ManifestToEvent(2, source, "delete_request", consumer.Name, resourceID, 1, true)
+			evt, err := helper.ManifestToEvent(2, sourceID, "delete_request", consumer.Name, resourceID, 1, true)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			pbEvt := &pbv1.CloudEvent{}
@@ -264,7 +263,6 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 	})
 
 	Context("GRPC Manifest Bundle Tests", func() {
-		source := "grpc-e2e"
 		resourceID := uuid.NewString()
 		resourceBundleStatus := &api.ResourceBundleStatus{
 			ManifestBundleStatus: &payload.ManifestBundleStatus{},
@@ -272,7 +270,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 
 		It("subscribe to resource bundle status with grpc client", func() {
 			go func() {
-				subClient, err := grpcClient.Subscribe(ctx, &pbv1.SubscriptionRequest{Source: source})
+				subClient, err := grpcClient.Subscribe(ctx, &pbv1.SubscriptionRequest{Source: sourceID})
 				if err != nil {
 					return
 				}
@@ -314,7 +312,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 		})
 
 		It("publish a resource bundle spec using grpc client", func() {
-			evt, err := helper.ManifestsToBundleEvent(1, source, "create_request", consumer.Name, resourceID, 1, false)
+			evt, err := helper.ManifestsToBundleEvent(1, sourceID, "create_request", consumer.Name, resourceID, 1, false)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			pbEvt := &pbv1.CloudEvent{}
@@ -390,7 +388,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 		})
 
 		It("publish a resource bundle spec with update request using grpc client", func() {
-			evt, err := helper.ManifestsToBundleEvent(2, source, "update_request", consumer.Name, resourceID, 1, false)
+			evt, err := helper.ManifestsToBundleEvent(2, sourceID, "update_request", consumer.Name, resourceID, 1, false)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			pbEvt := &pbv1.CloudEvent{}
@@ -466,7 +464,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 		})
 
 		It("publish a resource bundle spec with delete request using grpc client", func() {
-			evt, err := helper.ManifestsToBundleEvent(2, source, "delete_request", consumer.Name, resourceID, 1, true)
+			evt, err := helper.ManifestsToBundleEvent(2, sourceID, "delete_request", consumer.Name, resourceID, 1, true)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			pbEvt := &pbv1.CloudEvent{}

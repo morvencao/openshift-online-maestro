@@ -200,14 +200,13 @@ func (e *Env) LoadClients() error {
 		}
 	}
 
-	// Create GRPC authorizer
-	if e.Config.GRPCAuthorizer.EnableMock {
-		glog.Infof("Using Mock GRPC Authorizer")
-		e.Clients.GRPCAuthorizer = grpcauthorizer.NewMockGRPCAuthorizer()
-	} else {
-		switch e.Config.GRPCAuthorizer.Type {
-		case "kube":
-			kubeConfig, err := clientcmd.BuildConfigFromFlags("", e.Config.GRPCAuthorizer.AuthorizerConfig)
+	// Create GRPC authorizer based on configuration
+	if e.Config.GRPCServer.EnableGRPCServer {
+		if e.Config.GRPCServer.EnableGRPCAuthZMock {
+			glog.Infof("Using Mock GRPC Authorizer")
+			e.Clients.GRPCAuthorizer = grpcauthorizer.NewMockGRPCAuthorizer()
+		} else {
+			kubeConfig, err := clientcmd.BuildConfigFromFlags("", e.Config.GRPCServer.GRPCAuthrizerConfig)
 			if err != nil {
 				glog.Warningf("Unable to create kube client config: %s", err.Error())
 				// fallback to in-cluster config
@@ -223,8 +222,6 @@ func (e *Env) LoadClients() error {
 				return err
 			}
 			e.Clients.GRPCAuthorizer = grpcauthorizer.NewKubeGRPCAuthorizer(kubeClient)
-		default:
-			glog.Fatalf("Unsupported GRPC authorizer type: %s", e.Config.GRPCAuthorizer.Type)
 		}
 	}
 

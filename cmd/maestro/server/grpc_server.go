@@ -148,7 +148,7 @@ func NewGRPCServer(resourceService services.ResourceService, eventBroadcaster *e
 		MaxConnectionAge: config.MaxConnectionAge,
 	}))
 
-	if config.EnableTLS {
+	if !config.DisableTLS {
 		// Check tls cert and key path path
 		if config.TLSCertFile == "" || config.TLSKeyFile == "" {
 			check(
@@ -169,7 +169,11 @@ func NewGRPCServer(resourceService services.ResourceService, eventBroadcaster *e
 			MaxVersion:   tls.VersionTLS13,
 		}
 
-		if config.EnableMTLS {
+		if config.GRPCAuthNType == "mtls" {
+			if len(config.ClientCAFile) == 0 {
+				glog.Fatalf("Client CA file must be specified when using mtls authorization type")
+			}
+
 			certPool, err := x509.SystemCertPool()
 			if err != nil {
 				glog.Fatal("Failed to load system cert pool")
@@ -229,7 +233,8 @@ func (svr *GRPCServer) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 
 	// check if the event is from the authorized source
 	user := ctx.Value(contextUserKey).(string)
-	allowed, err := svr.grpcAuthorizer.AccessReview(ctx, "pub", "source", evt.Source(), user, "")
+	groups := ctx.Value(contextGroupsKey).([]string)
+	allowed, err := svr.grpcAuthorizer.AccessReview(ctx, "pub", "source", evt.Source(), user, groups)
 	if err != nil {
 		return nil, fmt.Errorf("failed to authorize the request: %v", err)
 	}
@@ -298,7 +303,8 @@ func (svr *GRPCServer) Subscribe(subReq *pbv1.SubscriptionRequest, subServer pbv
 	// check if the client is authorized to subscribe the event from the source
 	ctx := subServer.Context()
 	user := ctx.Value(contextUserKey).(string)
-	allowed, err := svr.grpcAuthorizer.AccessReview(ctx, "sub", "source", subReq.Source, user, "")
+	groups := ctx.Value(contextGroupsKey).([]string)
+	allowed, err := svr.grpcAuthorizer.AccessReview(ctx, "sub", "source", subReq.Source, user, groups)
 	if err != nil {
 		return fmt.Errorf("failed to authorize the request: %v", err)
 	}

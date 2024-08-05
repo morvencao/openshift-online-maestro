@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/glog"
 	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -23,9 +24,10 @@ func NewKubeGRPCAuthorizer(kubeClient kubernetes.Interface) GRPCAuthorizer {
 var _ GRPCAuthorizer = &KubeGRPCAuthorizer{}
 
 // AccessReview checks if the given user or group is allowed to perform the given action on the given resource by making a SubjectAccessReview request.
-func (k *KubeGRPCAuthorizer) AccessReview(ctx context.Context, action, resourceType, resource, user, group string) (allowed bool, err error) {
-	if user != "" && group != "" {
-		return false, fmt.Errorf("both user and group cannot be specified")
+func (k *KubeGRPCAuthorizer) AccessReview(ctx context.Context, action, resourceType, resource, user string, groups []string) (allowed bool, err error) {
+	glog.V(4).Infof("AccessReview: action=%s, resourceType=%s, resource=%s, user=%s, groups=%s", action, resourceType, resource, user, groups)
+	if user != "" && len(groups) == 0 {
+		return false, fmt.Errorf("both user and groups cannot be specified")
 	}
 
 	if action != "pub" && action != "sub" {
@@ -53,7 +55,7 @@ func (k *KubeGRPCAuthorizer) AccessReview(ctx context.Context, action, resourceT
 				Verb: action,
 			},
 			User:   user,
-			Groups: []string{group},
+			Groups: groups,
 		},
 	}, metav1.CreateOptions{})
 
