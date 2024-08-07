@@ -160,7 +160,7 @@ func NewGRPCServer(resourceService services.ResourceService, eventBroadcaster *e
 		// Serve with TLS
 		serverCerts, err := tls.LoadX509KeyPair(config.TLSCertFile, config.TLSKeyFile)
 		if err != nil {
-			glog.Fatalf("Failed to load server certificate %v", err)
+			check(fmt.Errorf("failed to load server certificates: %v", err), "Can't start gRPC server")
 		}
 
 		tlsConfig := &tls.Config{
@@ -171,29 +171,32 @@ func NewGRPCServer(resourceService services.ResourceService, eventBroadcaster *e
 
 		if config.GRPCAuthNType == "mtls" {
 			if len(config.ClientCAFile) == 0 {
-				glog.Fatalf("Client CA file must be specified when using mtls authorization type")
+				check(fmt.Errorf("no client CA file specified when using mtls authorization type"), "Can't start gRPC server")
 			}
 
 			certPool, err := x509.SystemCertPool()
 			if err != nil {
-				glog.Fatal("Failed to load system cert pool")
+				check(fmt.Errorf("failed to load system cert pool: %v", err), "Can't start gRPC server")
 			}
 
 			caPEM, err := os.ReadFile(config.ClientCAFile)
 			if err != nil {
-				glog.Fatal("Failed to read client CA file")
+				check(fmt.Errorf("failed to read client CA file: %v", err), "Can't start gRPC server")
 			}
 
 			if ok := certPool.AppendCertsFromPEM(caPEM); !ok {
-				glog.Fatalf("Failed to append client CA to cert pool")
+				check(fmt.Errorf("failed to append client CA to cert pool"), "Can't start gRPC server")
 			}
 
 			tlsConfig.ClientCAs = certPool
 			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
-		}
 
-		grpcServerOptions = append(grpcServerOptions, grpc.Creds(credentials.NewTLS(tlsConfig)), grpc.UnaryInterceptor(authUnaryInterceptor), grpc.StreamInterceptor(authStreamInterceptor))
-		glog.Infof("Serving gRPC service with TLS at %s", config.ServerBindPort)
+			grpcServerOptions = append(grpcServerOptions, grpc.Creds(credentials.NewTLS(tlsConfig)), grpc.UnaryInterceptor(authUnaryInterceptor), grpc.StreamInterceptor(authStreamInterceptor))
+			glog.Infof("Serving gRPC service with mTLS at %s", config.ServerBindPort)
+		} else {
+			grpcServerOptions = append(grpcServerOptions, grpc.Creds(credentials.NewTLS(tlsConfig)))
+			glog.Infof("Serving gRPC service with TLS at %s", config.ServerBindPort)
+		}
 	} else {
 		glog.Infof("Serving gRPC service without TLS at %s", config.ServerBindPort)
 	}
@@ -202,16 +205,17 @@ func NewGRPCServer(resourceService services.ResourceService, eventBroadcaster *e
 		grpcServer:       grpc.NewServer(grpcServerOptions...),
 		eventBroadcaster: eventBroadcaster,
 		resourceService:  resourceService,
-		bindAddress:      env().Config.HTTPServer.Hostname + ":" + config.ServerBindPort,
 		grpcAuthorizer:   grpcAuthorizer,
+		bindAddress:      env().Config.HTTPServer.Hostname + ":" + config.ServerBindPort,
 	}
 }
 
 // Start starts the gRPC server
 func (svr *GRPCServer) Start() error {
+	glog.Info("Starting gRPC server")
 	lis, err := net.Listen("tcp", svr.bindAddress)
 	if err != nil {
-		glog.Fatalf("failed to listen: %v", err)
+		glog.Errorf("failed to listen: %v", err)
 		return err
 	}
 	pbv1.RegisterCloudEventServiceServer(svr.grpcServer, svr)

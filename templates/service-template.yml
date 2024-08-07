@@ -118,6 +118,7 @@ parameters:
   displayName: Message Driver Type
   description: Message driver type, mqtt or grpc.
   value: mqtt
+
 - name: DISABLE_GRPC_TLS
   displayName: Disable gRPC TLS
   description: Disable TLS for gRPC server
