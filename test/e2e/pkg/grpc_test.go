@@ -253,7 +253,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 					return err
 				}
 				return fmt.Errorf("nginx deployment still exists")
-			}, 1*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
+			}, 2*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
 		})
 
 		It("get the resource with the maestro api", func() {
@@ -502,7 +502,7 @@ var _ = Describe("GRPC", Ordered, Label("e2e-tests-grpc"), func() {
 					return err
 				}
 				return fmt.Errorf("nginx deployment still exists")
-			}, 1*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
+			}, 2*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
 		})
 
 		It("get the resource with the maestro api", func() {

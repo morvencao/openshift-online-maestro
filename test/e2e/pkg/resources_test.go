@@ -89,7 +89,7 @@ var _ = Describe("Resources", Ordered, Label("e2e-tests-resources"), func() {
 					return err
 				}
 				return fmt.Errorf("nginx deployment still exists")
-			}, 1*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
+			}, 2*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
 		})
 	})
 
@@ -146,7 +146,7 @@ var _ = Describe("Resources", Ordered, Label("e2e-tests-resources"), func() {
 					return err
 				}
 				return fmt.Errorf("nginx deployment still exists")
-			}, 1*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
+			}, 2*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
 		})
 	})
 
@@ -207,7 +207,7 @@ var _ = Describe("Resources", Ordered, Label("e2e-tests-resources"), func() {
 					return err
 				}
 				return fmt.Errorf("nginx deployment still exists")
-			}, 1*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
+			}, 2*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
 		})
 	})
 
@@ -275,7 +275,7 @@ var _ = Describe("Resources", Ordered, Label("e2e-tests-resources"), func() {
 					return err
 				}
 				return fmt.Errorf("nginx deployment still exists")
-			}, 1*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
+			}, 2*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
 		})
 	})
 

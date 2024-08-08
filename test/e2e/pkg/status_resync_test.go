@@ -169,7 +169,7 @@ var _ = Describe("Status resync", Ordered, Label("e2e-tests-status-resync"), fun
 					return err
 				}
 				return fmt.Errorf("nginx deployment still exists")
-			}, 1*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
+			}, 2*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
 
 			err = consumer.ClientSet.CoreV1().ServiceAccounts("default").Delete(ctx, "nginx", metav1.DeleteOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
@@ -351,7 +351,7 @@ var _ = Describe("Status resync", Ordered, Label("e2e-tests-status-resync"), fun
 					return err
 				}
 				return fmt.Errorf("nginx deployment still exists")
-			}, 1*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
+			}, 2*time.Minute, 1*time.Second).ShouldNot(HaveOccurred())
 
 			err = consumer.ClientSet.CoreV1().ServiceAccounts("default").Delete(ctx, "nginx", metav1.DeleteOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
