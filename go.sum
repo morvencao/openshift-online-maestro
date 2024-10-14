@@ -397,6 +397,8 @@ github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9G
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=
 github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7PXmsc=
+github.com/morvencao/ocm-sdk-go v0.0.0-20241010090246-fb74d2e87c75 h1:7+sPlWIJkQhFJLqjbE7td6W2KBk7n+q05ztpEw8fplM=
+github.com/morvencao/ocm-sdk-go v0.0.0-20241010090246-fb74d2e87c75/go.mod h1:VUykb6x2KAljQHql6vnPcE40MQvA4JQNKvwT7JIbrkM=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
@@ -840,8 +842,6 @@ open-cluster-management.io/api v0.14.1-0.20240627145512-bd6f2229b53c h1:gYfgkX/U
 open-cluster-management.io/api v0.14.1-0.20240627145512-bd6f2229b53c/go.mod h1:9erZEWEn4bEqh0nIX2wA7f/s3KCuFycQdBrPrRzi0QM=
 open-cluster-management.io/ocm v0.14.1-0.20240906021855-b6763a13c0ff h1:nGP34ECvH6G8ihcF0Q6ZzpYGjvRrJ/yOcj1Dc3z/H48=
 open-cluster-management.io/ocm v0.14.1-0.20240906021855-b6763a13c0ff/go.mod h1:bt8jy8oaXSTTlv6RtRSz4Ea8II15SH1PZJZs34ZWOU4=
-open-cluster-management.io/sdk-go v0.14.1-0.20241009075853-0c5ba39fd113 h1:VSIxKaQyL1AaT+3TmOYnUlAkEX3lKG40zPuGPjXBP6M=
-open-cluster-management.io/sdk-go v0.14.1-0.20241009075853-0c5ba39fd113/go.mod h1:VUykb6x2KAljQHql6vnPcE40MQvA4JQNKvwT7JIbrkM=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.29.0 h1:/U5vjBbQn3RChhv7P11uhYvCSm5G2GaIi5AIGBS6r4c=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.29.0/go.mod h1:z7+wmGM2dfIiLRfrC6jb5kV2Mq/sK1ZP303cxzkV5Y4=
 sigs.k8s.io/controller-runtime v0.18.5 h1:nTHio/W+Q4aBlQMgbnC5hZb4IjIidyrizMai9P6n4Rk=
