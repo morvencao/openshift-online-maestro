@@ -146,6 +146,7 @@ func (e *Env) LoadServices() {
 	e.Services.Events = NewEventServiceLocator(e)
 	e.Services.StatusEvents = NewStatusEventServiceLocator(e)
 	e.Services.Consumers = NewConsumerServiceLocator(e)
+	e.Services.FileSyncers = NewFileSyncerServiceLocator(e)
 }
 
 func (e *Env) LoadClients() error {
@@ -192,7 +193,7 @@ func (e *Env) LoadClients() error {
 				klog.Errorf("Unable to build cloudevent source options: %s", err.Error())
 				return err
 			}
-			e.Clients.CloudEventsSource, err = cloudevents.NewSourceClient(cloudEventsSourceOptions, e.Services.Resources())
+			e.Clients.CloudEventsSource, err = cloudevents.NewSourceClient(cloudEventsSourceOptions, e.Services.Resources(), e.Services.FileSyncers())
 			if err != nil {
 				klog.Errorf("Unable to create CloudEvents Source client: %s", err.Error())
 				return err

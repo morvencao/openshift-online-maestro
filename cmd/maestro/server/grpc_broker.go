@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net"
 	"strconv"
@@ -13,8 +15,10 @@ import (
 	cetypes "github.com/cloudevents/sdk-go/v2/types"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"gorm.io/datatypes"
 	"k8s.io/klog/v2"
 	pbv1 "open-cluster-management.io/sdk-go/pkg/cloudevents/generic/options/grpc/protobuf/v1"
 	grpcprotocol "open-cluster-management.io/sdk-go/pkg/cloudevents/generic/options/grpc/protocol"
@@ -23,15 +27,16 @@ import (
 	workpayload "open-cluster-management.io/sdk-go/pkg/cloudevents/work/payload"
 
 	"github.com/openshift-online/maestro/pkg/api"
+	"github.com/openshift-online/maestro/pkg/constants"
 	"github.com/openshift-online/maestro/pkg/dao"
 	"github.com/openshift-online/maestro/pkg/event"
 	"github.com/openshift-online/maestro/pkg/logger"
 	"github.com/openshift-online/maestro/pkg/services"
 )
 
-type resourceHandler func(res *api.Resource) error
+type resourceHandler func(obj interface{}) error
 
-// subscriber defines a subscriber that can receive and handle resource spec.
+// subscriber defines a subscriber that can receive and handle resource and filesyncer spec.
 type subscriber struct {
 	clusterName string
 	handler     resourceHandler
@@ -52,6 +57,7 @@ type GRPCBroker struct {
 	eventInstanceDao   dao.EventInstanceDao
 	resourceService    services.ResourceService
 	statusEventService services.StatusEventService
+	fileSyncerService  services.FileSyncerService
 	bindAddress        string
 	subscribers        map[string]*subscriber  // registered subscribers
 	eventBroadcaster   *event.EventBroadcaster // event broadcaster to broadcast resource status update events to subscribers
@@ -72,6 +78,33 @@ func NewGRPCBroker(eventBroadcaster *event.EventBroadcaster) EventServer {
 		MaxConnectionAge: config.MaxConnectionAge,
 	}))
 
+	if !config.DisableTLS {
+		// Check tls cert and key path path
+		if config.BrokerTLSCertFile == "" || config.BrokerTLSKeyFile == "" {
+			check(
+				fmt.Errorf("unspecified required --grpc-broker-tls-cert-file, --grpc-broker-tls-key-file"),
+				"Can't start gRPC broker",
+			)
+		}
+
+		// Serve with TLS
+		serverCerts, err := tls.LoadX509KeyPair(config.BrokerTLSCertFile, config.BrokerTLSKeyFile)
+		if err != nil {
+			check(fmt.Errorf("failed to load broker certificates: %v", err), "Can't start gRPC server")
+		}
+
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{serverCerts},
+			MinVersion:   tls.VersionTLS13,
+			MaxVersion:   tls.VersionTLS13,
+		}
+
+		grpcServerOptions = append(grpcServerOptions, grpc.Creds(credentials.NewTLS(tlsConfig)))
+		klog.Infof("Serving gRPC broker with TLS at %s", config.ServerBindPort)
+	} else {
+		klog.Infof("Serving gRPC broker without TLS at %s", config.ServerBindPort)
+	}
+
 	klog.Infof("Serving gRPC broker without TLS at %s", config.BrokerBindPort)
 	sessionFactory := env().Database.SessionFactory
 	return &GRPCBroker{
@@ -80,6 +113,7 @@ func NewGRPCBroker(eventBroadcaster *event.EventBroadcaster) EventServer {
 		eventInstanceDao:   dao.NewEventInstanceDao(&sessionFactory),
 		resourceService:    env().Services.Resources(),
 		statusEventService: env().Services.StatusEvents(),
+		fileSyncerService:  env().Services.FileSyncers(),
 		bindAddress:        env().Config.HTTPServer.Hostname + ":" + config.BrokerBindPort,
 		subscribers:        make(map[string]*subscriber),
 		eventBroadcaster:   eventBroadcaster,
@@ -118,7 +152,7 @@ func (bkr *GRPCBroker) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 		return nil, fmt.Errorf("failed to parse cloud event type %s, %v", evt.Type(), err)
 	}
 
-	klog.V(4).Infof("receive the event with grpc broker, %s", evt)
+	klog.V(4).Infof("received the event with grpc broker, %s", evt)
 
 	// handler resync request
 	if eventType.Action == types.ResyncRequestAction {
@@ -129,15 +163,40 @@ func (bkr *GRPCBroker) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 		return &emptypb.Empty{}, nil
 	}
 
-	// decode the cloudevent data as resource with status
-	resource, err := decodeResourceStatus(eventType.CloudEventsDataType, evt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode cloudevent: %v", err)
-	}
+	switch eventType.CloudEventsDataType.String() {
+	case constants.FileSyncerEventDataType.String():
+		klog.V(4).Infof("received filesyncer event with grpc broker, %s", evt)
+		// decode the cloudevent data as filesyncer with status
+		filesyncer, err := decodeFileSyncerStatus(evt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode cloudevent to filesyncer status: %v", err)
+		}
 
-	// handle the resource status update according status update type
-	if err := handleStatusUpdate(ctx, resource, bkr.resourceService, bkr.statusEventService); err != nil {
-		return nil, fmt.Errorf("failed to handle resource status update %s: %s", resource.ID, err.Error())
+		// handle the filesyncer status update according status update type
+		updated, err := handleFileSyncerStatusUpdate(ctx, filesyncer, bkr.fileSyncerService)
+		if err != nil {
+			return nil, fmt.Errorf("failed to handle filesyncer status update %s: %s", filesyncer.ID, err.Error())
+		}
+
+		// broadcast the filesyncer status update event to subscribers
+		// TODO: add a new event type for filesyncer status update
+		klog.V(4).Infof("Broadcast the filesyncer status ID: %s, source: %s", updated.ID, updated.Source)
+		bkr.eventBroadcaster.Broadcast(updated)
+
+	case workpayload.ManifestEventDataType.String(), workpayload.ManifestBundleEventDataType.String():
+		klog.V(4).Infof("received resource event with grpc broker, %s", evt)
+		// decode the cloudevent data as resource with status
+		resource, err := decodeResourceStatus(eventType.CloudEventsDataType, evt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode cloudevent to resource status: %v", err)
+		}
+
+		// handle the resource status update according status update type
+		if err := handleResourceStatusUpdate(ctx, resource, bkr.resourceService, bkr.statusEventService); err != nil {
+			return nil, fmt.Errorf("failed to handle resource status update %s: %s", resource.ID, err.Error())
+		}
+	default:
+		return nil, fmt.Errorf("unsupported cloudevents data type %s", eventType.CloudEventsDataType)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -166,7 +225,6 @@ func (bkr *GRPCBroker) unregister(id string) {
 	bkr.mu.Lock()
 	defer bkr.mu.Unlock()
 
-	klog.V(10).Infof("unregister subscriber %s", id)
 	close(bkr.subscribers[id].errChan)
 	delete(bkr.subscribers, id)
 }
@@ -180,27 +238,53 @@ func (bkr *GRPCBroker) Subscribe(subReq *pbv1.SubscriptionRequest, subServer pbv
 		return fmt.Errorf("invalid subscription request: missing cluster name")
 	}
 	// register the cluster for subscription to the resource spec
-	subscriberID, errChan := bkr.register(subReq.ClusterName, func(res *api.Resource) error {
-		evt, err := encodeResourceSpec(res)
-		if err != nil {
-			return fmt.Errorf("failed to encode resource %s to cloudevent: %v", res.ID, err)
+	subscriberID, errChan := bkr.register(subReq.ClusterName, func(obj interface{}) error {
+		switch res := obj.(type) {
+		case *api.Resource:
+			evt, err := encodeResourceSpec(res)
+			if err != nil {
+				return fmt.Errorf("failed to encode resource %s to cloudevent: %v", res.ID, err)
+			}
+
+			klog.V(4).Infof("send the event to resource spec subscribers, %s", evt)
+
+			// WARNING: don't use "pbEvt, err := pb.ToProto(evt)" to convert cloudevent to protobuf
+			pbEvt := &pbv1.CloudEvent{}
+			if err = grpcprotocol.WritePBMessage(context.TODO(), binding.ToMessage(evt), pbEvt); err != nil {
+				return fmt.Errorf("failed to convert cloudevent to protobuf: %v", err)
+			}
+
+			// send the cloudevent to the subscriber
+			// TODO: error handling to address errors beyond network issues.
+			if err := subServer.Send(pbEvt); err != nil {
+				klog.Errorf("failed to send grpc event, %v", err)
+			}
+
+			return nil
+		case *api.FileSyncer:
+			evt, err := encodeFileSyncerSpec(res)
+			if err != nil {
+				return fmt.Errorf("failed to encode filesyncer %s to cloudevent: %v", res.ID, err)
+			}
+
+			klog.V(4).Infof("send the event to filesyncer spec subscribers, %s", evt)
+
+			// WARNING: don't use "pbEvt, err := pb.ToProto(evt)" to convert cloudevent to protobuf
+			pbEvt := &pbv1.CloudEvent{}
+			if err = grpcprotocol.WritePBMessage(context.TODO(), binding.ToMessage(evt), pbEvt); err != nil {
+				return fmt.Errorf("failed to convert cloudevent to protobuf: %v", err)
+			}
+
+			// send the cloudevent to the subscriber
+			// TODO: error handling to address errors beyond network issues.
+			if err := subServer.Send(pbEvt); err != nil {
+				klog.Errorf("failed to send grpc event, %v", err)
+			}
+
+			return nil
+		default:
+			return fmt.Errorf("unsupported resource type %T", res)
 		}
-
-		klog.V(4).Infof("send the event to spec subscribers, %s", evt)
-
-		// WARNING: don't use "pbEvt, err := pb.ToProto(evt)" to convert cloudevent to protobuf
-		pbEvt := &pbv1.CloudEvent{}
-		if err = grpcprotocol.WritePBMessage(context.TODO(), binding.ToMessage(evt), pbEvt); err != nil {
-			return fmt.Errorf("failed to convert cloudevent to protobuf: %v", err)
-		}
-
-		// send the cloudevent to the subscriber
-		// TODO: error handling to address errors beyond network issues.
-		if err := subServer.Send(pbEvt); err != nil {
-			klog.Errorf("failed to send grpc event, %v", err)
-		}
-
-		return nil
 	})
 
 	select {
@@ -209,9 +293,56 @@ func (bkr *GRPCBroker) Subscribe(subReq *pbv1.SubscriptionRequest, subServer pbv
 		bkr.unregister(subscriberID)
 		return err
 	case <-subServer.Context().Done():
+		klog.Infof("unregister subscriber %s", subscriberID)
 		bkr.unregister(subscriberID)
 		return nil
 	}
+}
+
+// decodeFileSyncerStatus translates a CloudEvent into a filesyncer containing the status JSON map.
+func decodeFileSyncerStatus(evt *ce.Event) (*api.FileSyncer, error) {
+	evtExtensions := evt.Context.GetExtensions()
+
+	clusterName, err := cetypes.ToString(evtExtensions[types.ExtensionClusterName])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get clustername extension: %v", err)
+	}
+
+	resourceID, err := cetypes.ToString(evtExtensions[types.ExtensionResourceID])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get resourceid extension: %v", err)
+	}
+
+	resourceVersion, err := cetypes.ToInteger(evtExtensions[types.ExtensionResourceVersion])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get resourceversion extension: %v", err)
+	}
+
+	evtData := evt.Data()
+	fileSyncerStatus := api.FileSyncerStatus{}
+	if err := json.Unmarshal([]byte(evtData), &fileSyncerStatus); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal filesyncer status: %v", err)
+	}
+
+	fileSyncerStatusJSON, err := json.Marshal(fileSyncerStatus)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal filesyncer status: %v", err)
+	}
+	status := datatypes.JSONMap{}
+	if err := json.Unmarshal(fileSyncerStatusJSON, &status); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal filesyncer status: %v", err)
+	}
+
+	fileSyncer := &api.FileSyncer{
+		ConsumerName: clusterName,
+		Version:      resourceVersion,
+		Meta: api.Meta{
+			ID: resourceID,
+		},
+		Status: status,
+	}
+
+	return fileSyncer, nil
 }
 
 // decodeResourceStatus translates a CloudEvent into a resource containing the status JSON map.
@@ -254,7 +385,7 @@ func decodeResourceStatus(eventDataType types.CloudEventsDataType, evt *ce.Event
 	case workpayload.ManifestBundleEventDataType:
 		resource.Type = api.ResourceTypeBundle
 	default:
-		return nil, fmt.Errorf("unsupported cloudevents data type %s", eventDataType)
+		return nil, fmt.Errorf("unsupported cloudevents data type %s for resource", eventDataType)
 	}
 
 	return resource, nil
@@ -287,6 +418,34 @@ func encodeResourceSpec(resource *api.Resource) (*ce.Event, error) {
 	}
 
 	return evt, nil
+}
+
+// encodeFileSyncerSpec translates a resource spec JSON map into a CloudEvent.
+func encodeFileSyncerSpec(fs *api.FileSyncer) (*ce.Event, error) {
+	evt := ce.NewEvent()
+	evt.SetID(uuid.New().String())
+	evt.SetTime(time.Now())
+	eventType := types.CloudEventsType{
+		CloudEventsDataType: constants.FileSyncerEventDataType,
+		SubResource:         types.SubResourceSpec,
+		Action:              types.EventAction("create_request"),
+	}
+	evt.SetType(eventType.String())
+	evt.SetSource("maestro")
+	// TODO set resource.Source with a new extension attribute if the agent needs
+	evt.SetExtension(types.ExtensionResourceID, fs.ID)
+	evt.SetExtension(types.ExtensionResourceVersion, int64(fs.Version))
+	evt.SetExtension(types.ExtensionClusterName, fs.ConsumerName)
+
+	if !fs.GetDeletionTimestamp().IsZero() {
+		evt.SetExtension(types.ExtensionDeletionTimestamp, fs.GetDeletionTimestamp().Time)
+	}
+
+	if err := evt.SetData(ce.ApplicationJSON, fs.Spec); err != nil {
+		return nil, fmt.Errorf("failed to set data: %v", err)
+	}
+
+	return &evt, nil
 }
 
 // Upon receiving the spec resync event, the source responds by sending resource status events to the broker as follows:
@@ -389,9 +548,33 @@ func (bkr *GRPCBroker) handleRes(resource *api.Resource) {
 	}
 }
 
+// handleRes publish the filesyncer to the correct subscriber.
+func (bkr *GRPCBroker) handleFS(fileSyncer *api.FileSyncer) {
+	bkr.mu.RLock()
+	defer bkr.mu.RUnlock()
+	for _, subscriber := range bkr.subscribers {
+		if subscriber.clusterName == fileSyncer.ConsumerName {
+			if err := subscriber.handler(fileSyncer); err != nil {
+				subscriber.errChan <- err
+			}
+		}
+	}
+}
+
 // OnCreate is called by the controller when a resource is created on the maestro server.
-func (bkr *GRPCBroker) OnCreate(ctx context.Context, id string) error {
-	resource, err := bkr.resourceService.Get(ctx, id)
+func (bkr *GRPCBroker) OnCreate(ctx context.Context, source, sourceID string) error {
+	if source == "FileSyncers" {
+		fileSyncer, err := bkr.fileSyncerService.Get(ctx, sourceID)
+		if err != nil {
+			return err
+		}
+
+		bkr.handleFS(fileSyncer)
+
+		return nil
+	}
+
+	resource, err := bkr.resourceService.Get(ctx, sourceID)
 	if err != nil {
 		return err
 	}
@@ -402,8 +585,19 @@ func (bkr *GRPCBroker) OnCreate(ctx context.Context, id string) error {
 }
 
 // OnUpdate is called by the controller when a resource is updated on the maestro server.
-func (bkr *GRPCBroker) OnUpdate(ctx context.Context, id string) error {
-	resource, err := bkr.resourceService.Get(ctx, id)
+func (bkr *GRPCBroker) OnUpdate(ctx context.Context, source, sourceID string) error {
+	if source == "FileSyncers" {
+		fileSyncer, err := bkr.fileSyncerService.Get(ctx, sourceID)
+		if err != nil {
+			return err
+		}
+
+		bkr.handleFS(fileSyncer)
+
+		return nil
+	}
+
+	resource, err := bkr.resourceService.Get(ctx, sourceID)
 	if err != nil {
 		return err
 	}
@@ -414,8 +608,19 @@ func (bkr *GRPCBroker) OnUpdate(ctx context.Context, id string) error {
 }
 
 // OnDelete is called by the controller when a resource is deleted from the maestro server.
-func (bkr *GRPCBroker) OnDelete(ctx context.Context, id string) error {
-	resource, err := bkr.resourceService.Get(ctx, id)
+func (bkr *GRPCBroker) OnDelete(ctx context.Context, source, sourceID string) error {
+	if source == "FileSyncers" {
+		fileSyncer, err := bkr.fileSyncerService.Get(ctx, sourceID)
+		if err != nil {
+			return err
+		}
+
+		bkr.handleFS(fileSyncer)
+
+		return nil
+	}
+
+	resource, err := bkr.resourceService.Get(ctx, sourceID)
 	if err != nil {
 		return err
 	}

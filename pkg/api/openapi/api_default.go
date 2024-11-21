@@ -19,12 +19,12 @@ import (
 	"strings"
 )
 
-// DefaultApiService DefaultApi service
-type DefaultApiService service
+// DefaultAPIService DefaultAPI service
+type DefaultAPIService service
 
 type ApiApiMaestroV1ConsumersGetRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	page       *int32
 	size       *int32
 	search     *string
@@ -72,7 +72,7 @@ ApiMaestroV1ConsumersGet Returns a list of consumers
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiApiMaestroV1ConsumersGetRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ConsumersGet(ctx context.Context) ApiApiMaestroV1ConsumersGetRequest {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersGet(ctx context.Context) ApiApiMaestroV1ConsumersGetRequest {
 	return ApiApiMaestroV1ConsumersGetRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -82,7 +82,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersGet(ctx context.Context) ApiApi
 // Execute executes the request
 //
 //	@return ConsumerList
-func (a *DefaultApiService) ApiMaestroV1ConsumersGetExecute(r ApiApiMaestroV1ConsumersGetRequest) (*ConsumerList, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersGetExecute(r ApiApiMaestroV1ConsumersGetRequest) (*ConsumerList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -90,7 +90,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersGetExecute(r ApiApiMaestroV1Con
 		localVarReturnValue *ConsumerList
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ConsumersGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ConsumersGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -102,19 +102,25 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersGetExecute(r ApiApiMaestroV1Con
 	localVarFormParams := url.Values{}
 
 	if r.page != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
+	} else {
+		var defaultValue int32 = 1
+		r.page = &defaultValue
 	}
 	if r.size != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "size", r.size, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "size", r.size, "form", "")
+	} else {
+		var defaultValue int32 = 100
+		r.size = &defaultValue
 	}
 	if r.search != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.fields != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "fields", r.fields, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "fields", r.fields, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -204,7 +210,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersGetExecute(r ApiApiMaestroV1Con
 
 type ApiApiMaestroV1ConsumersIdDeleteRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	id         string
 }
 
@@ -219,7 +225,7 @@ ApiMaestroV1ConsumersIdDelete Delete a consumer
 	@param id The id of record
 	@return ApiApiMaestroV1ConsumersIdDeleteRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ConsumersIdDelete(ctx context.Context, id string) ApiApiMaestroV1ConsumersIdDeleteRequest {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersIdDelete(ctx context.Context, id string) ApiApiMaestroV1ConsumersIdDeleteRequest {
 	return ApiApiMaestroV1ConsumersIdDeleteRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -228,14 +234,14 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersIdDelete(ctx context.Context, i
 }
 
 // Execute executes the request
-func (a *DefaultApiService) ApiMaestroV1ConsumersIdDeleteExecute(r ApiApiMaestroV1ConsumersIdDeleteRequest) (*http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersIdDeleteExecute(r ApiApiMaestroV1ConsumersIdDeleteRequest) (*http.Response, error) {
 	var (
 		localVarHTTPMethod = http.MethodDelete
 		localVarPostBody   interface{}
 		formFiles          []formFile
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ConsumersIdDelete")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ConsumersIdDelete")
 	if err != nil {
 		return nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -348,7 +354,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersIdDeleteExecute(r ApiApiMaestro
 
 type ApiApiMaestroV1ConsumersIdGetRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	id         string
 }
 
@@ -363,7 +369,7 @@ ApiMaestroV1ConsumersIdGet Get an consumer by id
 	@param id The id of record
 	@return ApiApiMaestroV1ConsumersIdGetRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ConsumersIdGet(ctx context.Context, id string) ApiApiMaestroV1ConsumersIdGetRequest {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersIdGet(ctx context.Context, id string) ApiApiMaestroV1ConsumersIdGetRequest {
 	return ApiApiMaestroV1ConsumersIdGetRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -374,7 +380,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersIdGet(ctx context.Context, id s
 // Execute executes the request
 //
 //	@return Consumer
-func (a *DefaultApiService) ApiMaestroV1ConsumersIdGetExecute(r ApiApiMaestroV1ConsumersIdGetRequest) (*Consumer, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersIdGetExecute(r ApiApiMaestroV1ConsumersIdGetRequest) (*Consumer, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -382,7 +388,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersIdGetExecute(r ApiApiMaestroV1C
 		localVarReturnValue *Consumer
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ConsumersIdGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ConsumersIdGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -493,7 +499,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersIdGetExecute(r ApiApiMaestroV1C
 
 type ApiApiMaestroV1ConsumersIdPatchRequest struct {
 	ctx                  context.Context
-	ApiService           *DefaultApiService
+	ApiService           *DefaultAPIService
 	id                   string
 	consumerPatchRequest *ConsumerPatchRequest
 }
@@ -515,7 +521,7 @@ ApiMaestroV1ConsumersIdPatch Update an consumer
 	@param id The id of record
 	@return ApiApiMaestroV1ConsumersIdPatchRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ConsumersIdPatch(ctx context.Context, id string) ApiApiMaestroV1ConsumersIdPatchRequest {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersIdPatch(ctx context.Context, id string) ApiApiMaestroV1ConsumersIdPatchRequest {
 	return ApiApiMaestroV1ConsumersIdPatchRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -526,7 +532,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersIdPatch(ctx context.Context, id
 // Execute executes the request
 //
 //	@return Consumer
-func (a *DefaultApiService) ApiMaestroV1ConsumersIdPatchExecute(r ApiApiMaestroV1ConsumersIdPatchRequest) (*Consumer, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersIdPatchExecute(r ApiApiMaestroV1ConsumersIdPatchRequest) (*Consumer, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodPatch
 		localVarPostBody    interface{}
@@ -534,7 +540,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersIdPatchExecute(r ApiApiMaestroV
 		localVarReturnValue *Consumer
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ConsumersIdPatch")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ConsumersIdPatch")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -672,7 +678,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersIdPatchExecute(r ApiApiMaestroV
 
 type ApiApiMaestroV1ConsumersPostRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	consumer   *Consumer
 }
 
@@ -692,7 +698,7 @@ ApiMaestroV1ConsumersPost Create a new consumer
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiApiMaestroV1ConsumersPostRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ConsumersPost(ctx context.Context) ApiApiMaestroV1ConsumersPostRequest {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersPost(ctx context.Context) ApiApiMaestroV1ConsumersPostRequest {
 	return ApiApiMaestroV1ConsumersPostRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -702,7 +708,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersPost(ctx context.Context) ApiAp
 // Execute executes the request
 //
 //	@return Consumer
-func (a *DefaultApiService) ApiMaestroV1ConsumersPostExecute(r ApiApiMaestroV1ConsumersPostRequest) (*Consumer, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ConsumersPostExecute(r ApiApiMaestroV1ConsumersPostRequest) (*Consumer, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodPost
 		localVarPostBody    interface{}
@@ -710,7 +716,7 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersPostExecute(r ApiApiMaestroV1Co
 		localVarReturnValue *Consumer
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ConsumersPost")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ConsumersPost")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -834,9 +840,827 @@ func (a *DefaultApiService) ApiMaestroV1ConsumersPostExecute(r ApiApiMaestroV1Co
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiApiMaestroV1FilesyncersGetRequest struct {
+	ctx        context.Context
+	ApiService *DefaultAPIService
+	page       *int32
+	size       *int32
+	search     *string
+	orderBy    *string
+	fields     *string
+}
+
+// Page number of record list when record list exceeds specified page size
+func (r ApiApiMaestroV1FilesyncersGetRequest) Page(page int32) ApiApiMaestroV1FilesyncersGetRequest {
+	r.page = &page
+	return r
+}
+
+// Maximum number of records to return
+func (r ApiApiMaestroV1FilesyncersGetRequest) Size(size int32) ApiApiMaestroV1FilesyncersGetRequest {
+	r.size = &size
+	return r
+}
+
+// Specifies the search criteria. The syntax of this parameter is similar to the syntax of the _where_ clause of an SQL statement, using the names of the json attributes / column names of the account.  For example, in order to retrieve all the accounts with a username starting with &#x60;my&#x60;:  &#x60;&#x60;&#x60;sql username like &#39;my%&#39; &#x60;&#x60;&#x60;  The search criteria can also be applied on related resource. For example, in order to retrieve all the subscriptions labeled by &#x60;foo&#x3D;bar&#x60;,  &#x60;&#x60;&#x60;sql subscription_labels.key &#x3D; &#39;foo&#39; and subscription_labels.value &#x3D; &#39;bar&#39; &#x60;&#x60;&#x60;  If the parameter isn&#39;t provided, or if the value is empty, then all the accounts that the user has permission to see will be returned.
+func (r ApiApiMaestroV1FilesyncersGetRequest) Search(search string) ApiApiMaestroV1FilesyncersGetRequest {
+	r.search = &search
+	return r
+}
+
+// Specifies the order by criteria. The syntax of this parameter is similar to the syntax of the _order by_ clause of an SQL statement, but using the names of the json attributes / column of the account. For example, in order to retrieve all accounts ordered by username:  &#x60;&#x60;&#x60;sql username asc &#x60;&#x60;&#x60;  Or in order to retrieve all accounts ordered by username _and_ first name:  &#x60;&#x60;&#x60;sql username asc, firstName asc &#x60;&#x60;&#x60;  If the parameter isn&#39;t provided, or if the value is empty, then no explicit ordering will be applied.
+func (r ApiApiMaestroV1FilesyncersGetRequest) OrderBy(orderBy string) ApiApiMaestroV1FilesyncersGetRequest {
+	r.orderBy = &orderBy
+	return r
+}
+
+// Supplies a comma-separated list of fields to be returned. Fields of sub-structures and of arrays use &lt;structure&gt;.&lt;field&gt; notation. &lt;stucture&gt;.* means all field of a structure Example: For each Subscription to get id, href, plan(id and kind) and labels (all fields)  &#x60;&#x60;&#x60; ocm get subscriptions --parameter fields&#x3D;id,href,plan.id,plan.kind,labels.* --parameter fetchLabels&#x3D;true &#x60;&#x60;&#x60;
+func (r ApiApiMaestroV1FilesyncersGetRequest) Fields(fields string) ApiApiMaestroV1FilesyncersGetRequest {
+	r.fields = &fields
+	return r
+}
+
+func (r ApiApiMaestroV1FilesyncersGetRequest) Execute() (*FileSyncerList, *http.Response, error) {
+	return r.ApiService.ApiMaestroV1FilesyncersGetExecute(r)
+}
+
+/*
+ApiMaestroV1FilesyncersGet Returns a list of filesyncers
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiApiMaestroV1FilesyncersGetRequest
+*/
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersGet(ctx context.Context) ApiApiMaestroV1FilesyncersGetRequest {
+	return ApiApiMaestroV1FilesyncersGetRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return FileSyncerList
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersGetExecute(r ApiApiMaestroV1FilesyncersGetRequest) (*FileSyncerList, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *FileSyncerList
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1FilesyncersGet")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/maestro/v1/filesyncers"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.page != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
+	} else {
+		var defaultValue int32 = 1
+		r.page = &defaultValue
+	}
+	if r.size != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "size", r.size, "form", "")
+	} else {
+		var defaultValue int32 = 100
+		r.size = &defaultValue
+	}
+	if r.search != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
+	}
+	if r.orderBy != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
+	}
+	if r.fields != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "fields", r.fields, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiApiMaestroV1FilesyncersIdDeleteRequest struct {
+	ctx        context.Context
+	ApiService *DefaultAPIService
+	id         string
+}
+
+func (r ApiApiMaestroV1FilesyncersIdDeleteRequest) Execute() (*http.Response, error) {
+	return r.ApiService.ApiMaestroV1FilesyncersIdDeleteExecute(r)
+}
+
+/*
+ApiMaestroV1FilesyncersIdDelete Delete a file syncer
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id The id of record
+	@return ApiApiMaestroV1FilesyncersIdDeleteRequest
+*/
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersIdDelete(ctx context.Context, id string) ApiApiMaestroV1FilesyncersIdDeleteRequest {
+	return ApiApiMaestroV1FilesyncersIdDeleteRequest{
+		ApiService: a,
+		ctx:        ctx,
+		id:         id,
+	}
+}
+
+// Execute executes the request
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersIdDeleteExecute(r ApiApiMaestroV1FilesyncersIdDeleteRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1FilesyncersIdDelete")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/maestro/v1/filesyncers/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type ApiApiMaestroV1FilesyncersIdGetRequest struct {
+	ctx        context.Context
+	ApiService *DefaultAPIService
+	id         string
+}
+
+func (r ApiApiMaestroV1FilesyncersIdGetRequest) Execute() (*FileSyncer, *http.Response, error) {
+	return r.ApiService.ApiMaestroV1FilesyncersIdGetExecute(r)
+}
+
+/*
+ApiMaestroV1FilesyncersIdGet Get a file syncer by id
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id The id of record
+	@return ApiApiMaestroV1FilesyncersIdGetRequest
+*/
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersIdGet(ctx context.Context, id string) ApiApiMaestroV1FilesyncersIdGetRequest {
+	return ApiApiMaestroV1FilesyncersIdGetRequest{
+		ApiService: a,
+		ctx:        ctx,
+		id:         id,
+	}
+}
+
+// Execute executes the request
+//
+//	@return FileSyncer
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersIdGetExecute(r ApiApiMaestroV1FilesyncersIdGetRequest) (*FileSyncer, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *FileSyncer
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1FilesyncersIdGet")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/maestro/v1/filesyncers/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiApiMaestroV1FilesyncersIdPatchRequest struct {
+	ctx                    context.Context
+	ApiService             *DefaultAPIService
+	id                     string
+	fileSyncerPatchRequest *FileSyncerPatchRequest
+}
+
+// Updated file syncer data
+func (r ApiApiMaestroV1FilesyncersIdPatchRequest) FileSyncerPatchRequest(fileSyncerPatchRequest FileSyncerPatchRequest) ApiApiMaestroV1FilesyncersIdPatchRequest {
+	r.fileSyncerPatchRequest = &fileSyncerPatchRequest
+	return r
+}
+
+func (r ApiApiMaestroV1FilesyncersIdPatchRequest) Execute() (*FileSyncer, *http.Response, error) {
+	return r.ApiService.ApiMaestroV1FilesyncersIdPatchExecute(r)
+}
+
+/*
+ApiMaestroV1FilesyncersIdPatch Update a file syncer
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id The id of record
+	@return ApiApiMaestroV1FilesyncersIdPatchRequest
+*/
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersIdPatch(ctx context.Context, id string) ApiApiMaestroV1FilesyncersIdPatchRequest {
+	return ApiApiMaestroV1FilesyncersIdPatchRequest{
+		ApiService: a,
+		ctx:        ctx,
+		id:         id,
+	}
+}
+
+// Execute executes the request
+//
+//	@return FileSyncer
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersIdPatchExecute(r ApiApiMaestroV1FilesyncersIdPatchRequest) (*FileSyncer, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPatch
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *FileSyncer
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1FilesyncersIdPatch")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/maestro/v1/filesyncers/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.fileSyncerPatchRequest == nil {
+		return localVarReturnValue, nil, reportError("fileSyncerPatchRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.fileSyncerPatchRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 409 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiApiMaestroV1FilesyncersPostRequest struct {
+	ctx        context.Context
+	ApiService *DefaultAPIService
+	fileSyncer *FileSyncer
+}
+
+// File syncer data
+func (r ApiApiMaestroV1FilesyncersPostRequest) FileSyncer(fileSyncer FileSyncer) ApiApiMaestroV1FilesyncersPostRequest {
+	r.fileSyncer = &fileSyncer
+	return r
+}
+
+func (r ApiApiMaestroV1FilesyncersPostRequest) Execute() (*FileSyncer, *http.Response, error) {
+	return r.ApiService.ApiMaestroV1FilesyncersPostExecute(r)
+}
+
+/*
+ApiMaestroV1FilesyncersPost Create a new filesyncer
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiApiMaestroV1FilesyncersPostRequest
+*/
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersPost(ctx context.Context) ApiApiMaestroV1FilesyncersPostRequest {
+	return ApiApiMaestroV1FilesyncersPostRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return FileSyncer
+func (a *DefaultAPIService) ApiMaestroV1FilesyncersPostExecute(r ApiApiMaestroV1FilesyncersPostRequest) (*FileSyncer, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *FileSyncer
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1FilesyncersPost")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/maestro/v1/filesyncers"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.fileSyncer == nil {
+		return localVarReturnValue, nil, reportError("fileSyncer is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.fileSyncer
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 409 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiApiMaestroV1ResourceBundlesGetRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	page       *int32
 	size       *int32
 	search     *string
@@ -884,7 +1708,7 @@ ApiMaestroV1ResourceBundlesGet Returns a list of resource bundles
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiApiMaestroV1ResourceBundlesGetRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ResourceBundlesGet(ctx context.Context) ApiApiMaestroV1ResourceBundlesGetRequest {
+func (a *DefaultAPIService) ApiMaestroV1ResourceBundlesGet(ctx context.Context) ApiApiMaestroV1ResourceBundlesGetRequest {
 	return ApiApiMaestroV1ResourceBundlesGetRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -894,7 +1718,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourceBundlesGet(ctx context.Context) 
 // Execute executes the request
 //
 //	@return ResourceBundleList
-func (a *DefaultApiService) ApiMaestroV1ResourceBundlesGetExecute(r ApiApiMaestroV1ResourceBundlesGetRequest) (*ResourceBundleList, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ResourceBundlesGetExecute(r ApiApiMaestroV1ResourceBundlesGetRequest) (*ResourceBundleList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -902,7 +1726,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourceBundlesGetExecute(r ApiApiMaestr
 		localVarReturnValue *ResourceBundleList
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ResourceBundlesGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ResourceBundlesGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -914,19 +1738,25 @@ func (a *DefaultApiService) ApiMaestroV1ResourceBundlesGetExecute(r ApiApiMaestr
 	localVarFormParams := url.Values{}
 
 	if r.page != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
+	} else {
+		var defaultValue int32 = 1
+		r.page = &defaultValue
 	}
 	if r.size != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "size", r.size, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "size", r.size, "form", "")
+	} else {
+		var defaultValue int32 = 100
+		r.size = &defaultValue
 	}
 	if r.search != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.fields != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "fields", r.fields, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "fields", r.fields, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -1016,7 +1846,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourceBundlesGetExecute(r ApiApiMaestr
 
 type ApiApiMaestroV1ResourceBundlesIdGetRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	id         string
 }
 
@@ -1031,7 +1861,7 @@ ApiMaestroV1ResourceBundlesIdGet Get an resource bundle by id
 	@param id The id of record
 	@return ApiApiMaestroV1ResourceBundlesIdGetRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ResourceBundlesIdGet(ctx context.Context, id string) ApiApiMaestroV1ResourceBundlesIdGetRequest {
+func (a *DefaultAPIService) ApiMaestroV1ResourceBundlesIdGet(ctx context.Context, id string) ApiApiMaestroV1ResourceBundlesIdGetRequest {
 	return ApiApiMaestroV1ResourceBundlesIdGetRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -1042,7 +1872,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourceBundlesIdGet(ctx context.Context
 // Execute executes the request
 //
 //	@return ResourceBundle
-func (a *DefaultApiService) ApiMaestroV1ResourceBundlesIdGetExecute(r ApiApiMaestroV1ResourceBundlesIdGetRequest) (*ResourceBundle, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ResourceBundlesIdGetExecute(r ApiApiMaestroV1ResourceBundlesIdGetRequest) (*ResourceBundle, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -1050,7 +1880,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourceBundlesIdGetExecute(r ApiApiMaes
 		localVarReturnValue *ResourceBundle
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ResourceBundlesIdGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ResourceBundlesIdGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -1161,7 +1991,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourceBundlesIdGetExecute(r ApiApiMaes
 
 type ApiApiMaestroV1ResourcesGetRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	page       *int32
 	size       *int32
 	search     *string
@@ -1209,7 +2039,7 @@ ApiMaestroV1ResourcesGet Returns a list of resources
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiApiMaestroV1ResourcesGetRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ResourcesGet(ctx context.Context) ApiApiMaestroV1ResourcesGetRequest {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesGet(ctx context.Context) ApiApiMaestroV1ResourcesGetRequest {
 	return ApiApiMaestroV1ResourcesGetRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -1219,7 +2049,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesGet(ctx context.Context) ApiApi
 // Execute executes the request
 //
 //	@return ResourceList
-func (a *DefaultApiService) ApiMaestroV1ResourcesGetExecute(r ApiApiMaestroV1ResourcesGetRequest) (*ResourceList, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesGetExecute(r ApiApiMaestroV1ResourcesGetRequest) (*ResourceList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -1227,7 +2057,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesGetExecute(r ApiApiMaestroV1Res
 		localVarReturnValue *ResourceList
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ResourcesGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ResourcesGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -1239,19 +2069,25 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesGetExecute(r ApiApiMaestroV1Res
 	localVarFormParams := url.Values{}
 
 	if r.page != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
+	} else {
+		var defaultValue int32 = 1
+		r.page = &defaultValue
 	}
 	if r.size != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "size", r.size, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "size", r.size, "form", "")
+	} else {
+		var defaultValue int32 = 100
+		r.size = &defaultValue
 	}
 	if r.search != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.fields != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "fields", r.fields, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "fields", r.fields, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -1341,7 +2177,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesGetExecute(r ApiApiMaestroV1Res
 
 type ApiApiMaestroV1ResourcesIdDeleteRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	id         string
 }
 
@@ -1356,7 +2192,7 @@ ApiMaestroV1ResourcesIdDelete Delete a resource
 	@param id The id of record
 	@return ApiApiMaestroV1ResourcesIdDeleteRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ResourcesIdDelete(ctx context.Context, id string) ApiApiMaestroV1ResourcesIdDeleteRequest {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesIdDelete(ctx context.Context, id string) ApiApiMaestroV1ResourcesIdDeleteRequest {
 	return ApiApiMaestroV1ResourcesIdDeleteRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -1365,14 +2201,14 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesIdDelete(ctx context.Context, i
 }
 
 // Execute executes the request
-func (a *DefaultApiService) ApiMaestroV1ResourcesIdDeleteExecute(r ApiApiMaestroV1ResourcesIdDeleteRequest) (*http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesIdDeleteExecute(r ApiApiMaestroV1ResourcesIdDeleteRequest) (*http.Response, error) {
 	var (
 		localVarHTTPMethod = http.MethodDelete
 		localVarPostBody   interface{}
 		formFiles          []formFile
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ResourcesIdDelete")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ResourcesIdDelete")
 	if err != nil {
 		return nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -1485,7 +2321,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesIdDeleteExecute(r ApiApiMaestro
 
 type ApiApiMaestroV1ResourcesIdGetRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	id         string
 }
 
@@ -1500,7 +2336,7 @@ ApiMaestroV1ResourcesIdGet Get an resource by id
 	@param id The id of record
 	@return ApiApiMaestroV1ResourcesIdGetRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ResourcesIdGet(ctx context.Context, id string) ApiApiMaestroV1ResourcesIdGetRequest {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesIdGet(ctx context.Context, id string) ApiApiMaestroV1ResourcesIdGetRequest {
 	return ApiApiMaestroV1ResourcesIdGetRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -1511,7 +2347,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesIdGet(ctx context.Context, id s
 // Execute executes the request
 //
 //	@return Resource
-func (a *DefaultApiService) ApiMaestroV1ResourcesIdGetExecute(r ApiApiMaestroV1ResourcesIdGetRequest) (*Resource, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesIdGetExecute(r ApiApiMaestroV1ResourcesIdGetRequest) (*Resource, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -1519,7 +2355,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesIdGetExecute(r ApiApiMaestroV1R
 		localVarReturnValue *Resource
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ResourcesIdGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ResourcesIdGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -1630,7 +2466,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesIdGetExecute(r ApiApiMaestroV1R
 
 type ApiApiMaestroV1ResourcesIdPatchRequest struct {
 	ctx                  context.Context
-	ApiService           *DefaultApiService
+	ApiService           *DefaultAPIService
 	id                   string
 	resourcePatchRequest *ResourcePatchRequest
 }
@@ -1652,7 +2488,7 @@ ApiMaestroV1ResourcesIdPatch Update an resource
 	@param id The id of record
 	@return ApiApiMaestroV1ResourcesIdPatchRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ResourcesIdPatch(ctx context.Context, id string) ApiApiMaestroV1ResourcesIdPatchRequest {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesIdPatch(ctx context.Context, id string) ApiApiMaestroV1ResourcesIdPatchRequest {
 	return ApiApiMaestroV1ResourcesIdPatchRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -1663,7 +2499,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesIdPatch(ctx context.Context, id
 // Execute executes the request
 //
 //	@return Resource
-func (a *DefaultApiService) ApiMaestroV1ResourcesIdPatchExecute(r ApiApiMaestroV1ResourcesIdPatchRequest) (*Resource, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesIdPatchExecute(r ApiApiMaestroV1ResourcesIdPatchRequest) (*Resource, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodPatch
 		localVarPostBody    interface{}
@@ -1671,7 +2507,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesIdPatchExecute(r ApiApiMaestroV
 		localVarReturnValue *Resource
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ResourcesIdPatch")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ResourcesIdPatch")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -1809,7 +2645,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesIdPatchExecute(r ApiApiMaestroV
 
 type ApiApiMaestroV1ResourcesPostRequest struct {
 	ctx        context.Context
-	ApiService *DefaultApiService
+	ApiService *DefaultAPIService
 	resource   *Resource
 }
 
@@ -1829,7 +2665,7 @@ ApiMaestroV1ResourcesPost Create a new resource
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiApiMaestroV1ResourcesPostRequest
 */
-func (a *DefaultApiService) ApiMaestroV1ResourcesPost(ctx context.Context) ApiApiMaestroV1ResourcesPostRequest {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesPost(ctx context.Context) ApiApiMaestroV1ResourcesPostRequest {
 	return ApiApiMaestroV1ResourcesPostRequest{
 		ApiService: a,
 		ctx:        ctx,
@@ -1839,7 +2675,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesPost(ctx context.Context) ApiAp
 // Execute executes the request
 //
 //	@return Resource
-func (a *DefaultApiService) ApiMaestroV1ResourcesPostExecute(r ApiApiMaestroV1ResourcesPostRequest) (*Resource, *http.Response, error) {
+func (a *DefaultAPIService) ApiMaestroV1ResourcesPostExecute(r ApiApiMaestroV1ResourcesPostRequest) (*Resource, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodPost
 		localVarPostBody    interface{}
@@ -1847,7 +2683,7 @@ func (a *DefaultApiService) ApiMaestroV1ResourcesPostExecute(r ApiApiMaestroV1Re
 		localVarReturnValue *Resource
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiMaestroV1ResourcesPost")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultAPIService.ApiMaestroV1ResourcesPost")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}

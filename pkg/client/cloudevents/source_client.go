@@ -17,10 +17,11 @@ import (
 // SourceClient is an interface for publishing resource events to consumers
 // subscribing to and resyncing resource status from consumers.
 type SourceClient interface {
-	OnCreate(ctx context.Context, id string) error
-	OnUpdate(ctx context.Context, id string) error
-	OnDelete(ctx context.Context, id string) error
+	OnCreate(ctx context.Context, source, sourceID string) error
+	OnUpdate(ctx context.Context, source, sourceID string) error
+	OnDelete(ctx context.Context, source, sourceID string) error
 	Subscribe(ctx context.Context, handlers ...cegeneric.ResourceHandler[*api.Resource])
+
 	Resync(ctx context.Context, consumers []string) error
 	ReconnectedChan() <-chan struct{}
 }
@@ -30,9 +31,10 @@ type SourceClientImpl struct {
 	BundleCodec            cegeneric.Codec[*api.Resource]
 	CloudEventSourceClient *cegeneric.CloudEventSourceClient[*api.Resource]
 	ResourceService        services.ResourceService
+	FileSynccerService     services.FileSyncerService
 }
 
-func NewSourceClient(sourceOptions *ceoptions.CloudEventsSourceOptions, resourceService services.ResourceService) (SourceClient, error) {
+func NewSourceClient(sourceOptions *ceoptions.CloudEventsSourceOptions, resourceService services.ResourceService, fileSyncerService services.FileSyncerService) (SourceClient, error) {
 	ctx := context.Background()
 	codec, bundleCodec := &Codec{sourceID: sourceOptions.SourceID}, &BundleCodec{sourceID: sourceOptions.SourceID}
 	ceSourceClient, err := cegeneric.NewCloudEventSourceClient[*api.Resource](ctx, sourceOptions,
@@ -49,13 +51,19 @@ func NewSourceClient(sourceOptions *ceoptions.CloudEventsSourceOptions, resource
 		BundleCodec:            bundleCodec,
 		CloudEventSourceClient: ceSourceClient,
 		ResourceService:        resourceService,
+		FileSynccerService:     fileSyncerService,
 	}, nil
 }
 
-func (s *SourceClientImpl) OnCreate(ctx context.Context, id string) error {
+func (s *SourceClientImpl) OnCreate(ctx context.Context, source, sourceID string) error {
 	logger := logger.NewOCMLogger(ctx)
 
-	resource, err := s.ResourceService.Get(ctx, id)
+	// TODO: handle file syncer create
+	if source == "FileSyncers" {
+		return nil
+	}
+
+	resource, err := s.ResourceService.Get(ctx, sourceID)
 	if err != nil {
 		return err
 	}
@@ -77,10 +85,15 @@ func (s *SourceClientImpl) OnCreate(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *SourceClientImpl) OnUpdate(ctx context.Context, id string) error {
+func (s *SourceClientImpl) OnUpdate(ctx context.Context, source, sourceID string) error {
 	logger := logger.NewOCMLogger(ctx)
 
-	resource, err := s.ResourceService.Get(ctx, id)
+	// TODO: handle file syncer update
+	if source == "FileSyncers" {
+		return nil
+	}
+
+	resource, err := s.ResourceService.Get(ctx, sourceID)
 	if err != nil {
 		return err
 	}
@@ -102,10 +115,15 @@ func (s *SourceClientImpl) OnUpdate(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *SourceClientImpl) OnDelete(ctx context.Context, id string) error {
+func (s *SourceClientImpl) OnDelete(ctx context.Context, source, sourceID string) error {
 	logger := logger.NewOCMLogger(ctx)
 
-	resource, err := s.ResourceService.Get(ctx, id)
+	// TODO: handle file syncer delete
+	if source == "FileSyncers" {
+		return nil
+	}
+
+	resource, err := s.ResourceService.Get(ctx, sourceID)
 	if err != nil {
 		return err
 	}

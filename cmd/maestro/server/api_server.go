@@ -126,7 +126,7 @@ func NewAPIServer(eventBroadcaster *event.EventBroadcaster) Server {
 	}
 
 	if env().Config.GRPCServer.EnableGRPCServer {
-		s.grpcServer = NewGRPCServer(env().Services.Resources(), eventBroadcaster, *env().Config.GRPCServer, env().Clients.GRPCAuthorizer)
+		s.grpcServer = NewGRPCServer(env().Services.Resources(), env().Services.FileSyncers(), eventBroadcaster, *env().Config.GRPCServer, env().Clients.GRPCAuthorizer)
 	}
 	return s
 }

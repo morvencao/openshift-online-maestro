@@ -24,6 +24,7 @@ func (s *apiServer) routes() *mux.Router {
 
 	resourceHandler := handlers.NewResourceHandler(services.Resources(), services.Generic())
 	consumerHandler := handlers.NewConsumerHandler(services.Consumers(), services.Resources(), services.Generic())
+	fileSyncerHandler := handlers.NewFileSyncerHandler(services.FileSyncers(), services.Generic())
 	errorsHandler := handlers.NewErrorsHandler()
 
 	var authMiddleware auth.JWTMiddleware
@@ -97,6 +98,16 @@ func (s *apiServer) routes() *mux.Router {
 	apiV1ConsumersRouter.HandleFunc("/{id}", consumerHandler.Delete).Methods(http.MethodDelete)
 	apiV1ConsumersRouter.Use(authMiddleware.AuthenticateAccountJWT)
 	apiV1ConsumersRouter.Use(authzMiddleware.AuthorizeApi)
+
+	//  /api/maestro/v1/filesyncers
+	apiV1FileSyncersRouter := apiV1Router.PathPrefix("/filesyncers").Subrouter()
+	apiV1FileSyncersRouter.HandleFunc("", fileSyncerHandler.List).Methods(http.MethodGet)
+	apiV1FileSyncersRouter.HandleFunc("/{id}", fileSyncerHandler.Get).Methods(http.MethodGet)
+	apiV1FileSyncersRouter.HandleFunc("", fileSyncerHandler.Create).Methods(http.MethodPost)
+	apiV1FileSyncersRouter.HandleFunc("/{id}", fileSyncerHandler.Patch).Methods(http.MethodPatch)
+	apiV1FileSyncersRouter.HandleFunc("/{id}", fileSyncerHandler.Delete).Methods(http.MethodDelete)
+	apiV1FileSyncersRouter.Use(authMiddleware.AuthenticateAccountJWT)
+	apiV1FileSyncersRouter.Use(authzMiddleware.AuthorizeApi)
 
 	return mainRouter
 }

@@ -9,17 +9,17 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// resourceHandler is a function that can handle resource status change events.
-type resourceHandler func(res *api.Resource) error
+// resourceHandler is a function that can handle resource/filesyncer status change events.
+type resourceHandler func(obj interface{}) error
 
-// eventClient is a client that can receive and handle resource status change events.
+// eventClient is a client that can receive and handle resource/filesyncer status change events.
 type eventClient struct {
 	source  string
 	handler resourceHandler
 	errChan chan<- error
 }
 
-// EventBroadcaster is a component that can broadcast resource status change events to registered clients.
+// EventBroadcaster is a component that can broadcast resource/filesyncer status change events to registered clients.
 type EventBroadcaster struct {
 	mu sync.RWMutex
 
@@ -27,14 +27,14 @@ type EventBroadcaster struct {
 	clients map[string]*eventClient
 
 	// inbound messages from the clients.
-	broadcast chan *api.Resource
+	broadcast chan interface{}
 }
 
 // NewEventBroadcaster creates a new event broadcaster.
 func NewEventBroadcaster() *EventBroadcaster {
 	return &EventBroadcaster{
 		clients:   make(map[string]*eventClient),
-		broadcast: make(chan *api.Resource),
+		broadcast: make(chan interface{}),
 	}
 }
 
@@ -65,9 +65,9 @@ func (h *EventBroadcaster) Unregister(id string) {
 	delete(h.clients, id)
 }
 
-// Broadcast broadcasts a resource status change event to all registered clients.
-func (h *EventBroadcaster) Broadcast(res *api.Resource) {
-	h.broadcast <- res
+// Broadcast broadcasts a resource/filesyncer status change event to all registered clients.
+func (h *EventBroadcaster) Broadcast(obj interface{}) {
+	h.broadcast <- obj
 }
 
 // Start starts the event broadcaster and waits for events to broadcast.
@@ -78,16 +78,31 @@ func (h *EventBroadcaster) Start(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case res := <-h.broadcast:
-			h.mu.RLock()
-			for _, client := range h.clients {
-				if client.source == res.Source {
-					if err := client.handler(res); err != nil {
-						client.errChan <- err
+		case obj := <-h.broadcast:
+			switch res := obj.(type) {
+			case *api.Resource:
+				h.mu.RLock()
+				for _, client := range h.clients {
+					if client.source == res.Source {
+						if err := client.handler(res); err != nil {
+							client.errChan <- err
+						}
 					}
 				}
+				h.mu.RUnlock()
+			case *api.FileSyncer:
+				h.mu.RLock()
+				for _, client := range h.clients {
+					if client.source == res.Source {
+						if err := client.handler(res); err != nil {
+							client.errChan <- err
+						}
+					}
+				}
+				h.mu.RUnlock()
+			default:
+				klog.Errorf("unknown event type: %T", res)
 			}
-			h.mu.RUnlock()
 		}
 	}
 }

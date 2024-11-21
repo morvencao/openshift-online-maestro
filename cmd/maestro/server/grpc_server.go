@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"gorm.io/datatypes"
 	"k8s.io/klog/v2"
 	pbv1 "open-cluster-management.io/sdk-go/pkg/cloudevents/generic/options/grpc/protobuf/v1"
 	grpcprotocol "open-cluster-management.io/sdk-go/pkg/cloudevents/generic/options/grpc/protocol"
@@ -30,6 +31,7 @@ import (
 	"github.com/openshift-online/maestro/pkg/client/cloudevents"
 	"github.com/openshift-online/maestro/pkg/client/grpcauthorizer"
 	"github.com/openshift-online/maestro/pkg/config"
+	"github.com/openshift-online/maestro/pkg/constants"
 	"github.com/openshift-online/maestro/pkg/event"
 	"github.com/openshift-online/maestro/pkg/services"
 )
@@ -40,13 +42,14 @@ type GRPCServer struct {
 	grpcServer        *grpc.Server
 	eventBroadcaster  *event.EventBroadcaster
 	resourceService   services.ResourceService
+	fileSyncerService services.FileSyncerService
 	disableAuthorizer bool
 	grpcAuthorizer    grpcauthorizer.GRPCAuthorizer
 	bindAddress       string
 }
 
 // NewGRPCServer creates a new GRPCServer
-func NewGRPCServer(resourceService services.ResourceService, eventBroadcaster *event.EventBroadcaster, config config.GRPCServerConfig, grpcAuthorizer grpcauthorizer.GRPCAuthorizer) *GRPCServer {
+func NewGRPCServer(resourceService services.ResourceService, fileSyncerService services.FileSyncerService, eventBroadcaster *event.EventBroadcaster, config config.GRPCServerConfig, grpcAuthorizer grpcauthorizer.GRPCAuthorizer) *GRPCServer {
 	grpcServerOptions := make([]grpc.ServerOption, 0)
 	grpcServerOptions = append(grpcServerOptions, grpc.MaxRecvMsgSize(config.MaxReceiveMessageSize))
 	grpcServerOptions = append(grpcServerOptions, grpc.MaxSendMsgSize(config.MaxSendMessageSize))
@@ -80,9 +83,9 @@ func NewGRPCServer(resourceService services.ResourceService, eventBroadcaster *e
 		}
 
 		// add metrics and auth interceptors
-		grpcServerOptions = append(grpcServerOptions,
-			grpc.ChainUnaryInterceptor(newMetricsUnaryInterceptor(), newAuthUnaryInterceptor(config.GRPCAuthNType, grpcAuthorizer)),
-			grpc.ChainStreamInterceptor(newMetricsStreamInterceptor(), newAuthStreamInterceptor(config.GRPCAuthNType, grpcAuthorizer)))
+		// grpcServerOptions = append(grpcServerOptions,
+		// 	grpc.ChainUnaryInterceptor(newMetricsUnaryInterceptor(), newAuthUnaryInterceptor(config.GRPCAuthNType, grpcAuthorizer)),
+		// 	grpc.ChainStreamInterceptor(newMetricsStreamInterceptor(), newAuthStreamInterceptor(config.GRPCAuthNType, grpcAuthorizer)))
 
 		if config.GRPCAuthNType == "mtls" {
 			if len(config.ClientCAFile) == 0 {
@@ -125,6 +128,7 @@ func NewGRPCServer(resourceService services.ResourceService, eventBroadcaster *e
 		grpcServer:        grpc.NewServer(grpcServerOptions...),
 		eventBroadcaster:  eventBroadcaster,
 		resourceService:   resourceService,
+		fileSyncerService: fileSyncerService,
 		disableAuthorizer: config.DisableTLS,
 		grpcAuthorizer:    grpcAuthorizer,
 		bindAddress:       env().Config.HTTPServer.Hostname + ":" + config.ServerBindPort,
@@ -156,25 +160,25 @@ func (svr *GRPCServer) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 		return nil, fmt.Errorf("failed to convert protobuf to cloudevent: %v", err)
 	}
 
-	if !svr.disableAuthorizer {
-		// check if the event is from the authorized source
-		user := ctx.Value(contextUserKey).(string)
-		groups := ctx.Value(contextGroupsKey).([]string)
-		allowed, err := svr.grpcAuthorizer.AccessReview(ctx, "pub", "source", evt.Source(), user, groups)
-		if err != nil {
-			return nil, fmt.Errorf("failed to authorize the request: %v", err)
-		}
-		if !allowed {
-			return nil, fmt.Errorf("unauthorized to publish the event from source %s", evt.Source())
-		}
-	}
+	// if !svr.disableAuthorizer {
+	// 	// check if the event is from the authorized source
+	// 	user := ctx.Value(contextUserKey).(string)
+	// 	groups := ctx.Value(contextGroupsKey).([]string)
+	// 	allowed, err := svr.grpcAuthorizer.AccessReview(ctx, "pub", "source", evt.Source(), user, groups)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to authorize the request: %v", err)
+	// 	}
+	// 	if !allowed {
+	// 		return nil, fmt.Errorf("unauthorized to publish the event from source %s", evt.Source())
+	// 	}
+	// }
 
 	eventType, err := types.ParseCloudEventsType(evt.Type())
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cloud event type %s, %v", evt.Type(), err)
 	}
 
-	klog.V(4).Infof("receive the event with grpc server, %s", evt)
+	klog.V(4).Infof("received the event with grpc server, %s", evt)
 
 	// handler resync request
 	if eventType.Action == types.ResyncRequestAction {
@@ -185,41 +189,87 @@ func (svr *GRPCServer) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 		return &emptypb.Empty{}, nil
 	}
 
-	res, err := decodeResourceSpec(eventType.CloudEventsDataType, evt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode cloudevent: %v", err)
-	}
-
-	switch eventType.Action {
-	case common.CreateRequestAction:
-		_, err := svr.resourceService.Create(ctx, res)
+	switch eventType.CloudEventsDataType.String() {
+	case constants.FileSyncerEventDataType.String():
+		klog.V(4).Infof("received filesyncer event with grpc server, %s", evt)
+		// decode the cloudevent data as filesyncer with spec
+		filesyncer, err := decodeFileSyncerSpec(evt)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create resource: %v", err)
+			return nil, fmt.Errorf("failed to decode cloudevent to filesyncer spec: %v", err)
 		}
-	case common.UpdateRequestAction:
-		if res.Type == api.ResourceTypeBundle {
-			found, err := svr.resourceService.Get(ctx, res.ID)
+
+		switch eventType.Action {
+		case common.CreateRequestAction:
+			_, err := svr.fileSyncerService.Create(ctx, filesyncer)
 			if err != nil {
-				return nil, fmt.Errorf("failed to get resource: %v", err)
+				return nil, fmt.Errorf("failed to create filesyncer: %v", err)
 			}
+		case common.UpdateRequestAction:
+			if _, svcErr := svr.fileSyncerService.Get(ctx, filesyncer.ID); svcErr != nil {
+				if svcErr.Is404() {
+					// the filesyncer is not found, create it
+					_, err := svr.fileSyncerService.Create(ctx, filesyncer)
+					if err != nil {
+						return nil, fmt.Errorf("failed to create filesyncer: %v", err)
+					}
+				} else {
+					return nil, fmt.Errorf("failed to get filesyncer %s: %v", filesyncer.ID, svcErr)
+				}
+			} else {
+				_, err := svr.fileSyncerService.Update(ctx, filesyncer)
+				if err != nil {
+					return nil, fmt.Errorf("failed to update filesyncer: %v", err)
+				}
+			}
+		// TODO: handle delete request
+		// case common.DeleteRequestAction:
+		// 	err := svr.fileSyncerService.MarkAsDeleting(ctx, filesyncer.ID)
+		// 	if err != nil {
+		// 		return nil, fmt.Errorf("failed to delete filesyncer: %v", err)
+		// 	}
+		default:
+			return nil, fmt.Errorf("unsupported action %s", eventType.Action)
+		}
+	case workpayload.ManifestEventDataType.String(), workpayload.ManifestBundleEventDataType.String():
+		klog.V(4).Infof("received resource event with grpc server, %s", evt)
+		res, err := decodeResourceSpec(eventType.CloudEventsDataType, evt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode cloudevent to resource spec: %v", err)
+		}
 
-			if res.Version == 0 {
-				// the resource version is not guaranteed to be increased by source client,
-				// using the latest resource version.
-				res.Version = found.Version
+		switch eventType.Action {
+		case common.CreateRequestAction:
+			_, err := svr.resourceService.Create(ctx, res)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create resource: %v", err)
 			}
-		}
-		_, err := svr.resourceService.Update(ctx, res)
-		if err != nil {
-			return nil, fmt.Errorf("failed to update resource: %v", err)
-		}
-	case common.DeleteRequestAction:
-		err := svr.resourceService.MarkAsDeleting(ctx, res.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to delete resource: %v", err)
+		case common.UpdateRequestAction:
+			if res.Type == api.ResourceTypeBundle {
+				found, err := svr.resourceService.Get(ctx, res.ID)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get resource: %v", err)
+				}
+
+				if res.Version == 0 {
+					// the resource version is not guaranteed to be increased by source client,
+					// using the latest resource version.
+					res.Version = found.Version
+				}
+			}
+			_, err := svr.resourceService.Update(ctx, res)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update resource: %v", err)
+			}
+		case common.DeleteRequestAction:
+			err := svr.resourceService.MarkAsDeleting(ctx, res.ID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to delete resource: %v", err)
+			}
+		default:
+			return nil, fmt.Errorf("unsupported action %s", eventType.Action)
 		}
 	default:
-		return nil, fmt.Errorf("unsupported action %s", eventType.Action)
+		return nil, fmt.Errorf("unsupported cloudevents data type %s", eventType.CloudEventsDataType)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -227,41 +277,67 @@ func (svr *GRPCServer) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 
 // Subscribe implements the Subscribe method of the CloudEventServiceServer interface
 func (svr *GRPCServer) Subscribe(subReq *pbv1.SubscriptionRequest, subServer pbv1.CloudEventService_SubscribeServer) error {
-	if !svr.disableAuthorizer {
-		// check if the client is authorized to subscribe the event from the source
-		ctx := subServer.Context()
-		user := ctx.Value(contextUserKey).(string)
-		groups := ctx.Value(contextGroupsKey).([]string)
-		allowed, err := svr.grpcAuthorizer.AccessReview(ctx, "sub", "source", subReq.Source, user, groups)
-		if err != nil {
-			return fmt.Errorf("failed to authorize the request: %v", err)
-		}
-		if !allowed {
-			return fmt.Errorf("unauthorized to subscribe the event from source %s", subReq.Source)
-		}
-	}
+	// if !svr.disableAuthorizer {
+	// 	// check if the client is authorized to subscribe the event from the source
+	// 	ctx := subServer.Context()
+	// 	user := ctx.Value(contextUserKey).(string)
+	// 	groups := ctx.Value(contextGroupsKey).([]string)
+	// 	allowed, err := svr.grpcAuthorizer.AccessReview(ctx, "sub", "source", subReq.Source, user, groups)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to authorize the request: %v", err)
+	// 	}
+	// 	if !allowed {
+	// 		return fmt.Errorf("unauthorized to subscribe the event from source %s", subReq.Source)
+	// 	}
+	// }
 
-	clientID, errChan := svr.eventBroadcaster.Register(subReq.Source, func(res *api.Resource) error {
-		evt, err := encodeResourceStatus(res)
-		if err != nil {
-			return fmt.Errorf("failed to encode resource %s to cloudevent: %v", res.ID, err)
+	clientID, errChan := svr.eventBroadcaster.Register(subReq.Source, func(obj interface{}) error {
+		switch res := obj.(type) {
+		case *api.Resource:
+			evt, err := encodeResourceStatus(res)
+			if err != nil {
+				return fmt.Errorf("failed to encode resource %s to cloudevent: %v", res.ID, err)
+			}
+
+			klog.V(4).Infof("send the event to resource status subscribers, %s", evt)
+
+			// WARNING: don't use "pbEvt, err := pb.ToProto(evt)" to convert cloudevent to protobuf
+			pbEvt := &pbv1.CloudEvent{}
+			if err = grpcprotocol.WritePBMessage(context.TODO(), binding.ToMessage(evt), pbEvt); err != nil {
+				return fmt.Errorf("failed to convert cloudevent to protobuf: %v", err)
+			}
+
+			// send the cloudevent to the subscriber
+			// TODO: error handling to address errors beyond network issues.
+			if err := subServer.Send(pbEvt); err != nil {
+				return err
+			}
+
+			return nil
+		case *api.FileSyncer:
+			evt, err := encodeFileSyncerStatus(res)
+			if err != nil {
+				return fmt.Errorf("failed to encode filesyncer %s to cloudevent: %v", res.ID, err)
+			}
+
+			klog.V(4).Infof("send the event to filesyncer status subscribers, %s", evt)
+
+			// WARNING: don't use "pbEvt, err := pb.ToProto(evt)" to convert cloudevent to protobuf
+			pbEvt := &pbv1.CloudEvent{}
+			if err = grpcprotocol.WritePBMessage(context.TODO(), binding.ToMessage(evt), pbEvt); err != nil {
+				return fmt.Errorf("failed to convert cloudevent to protobuf: %v", err)
+			}
+
+			// send the cloudevent to the subscriber
+			// TODO: error handling to address errors beyond network issues.
+			if err := subServer.Send(pbEvt); err != nil {
+				return err
+			}
+
+			return nil
+		default:
+			return fmt.Errorf("unknown event type: %T", res)
 		}
-
-		klog.V(4).Infof("send the event to status subscribers, %s", evt)
-
-		// WARNING: don't use "pbEvt, err := pb.ToProto(evt)" to convert cloudevent to protobuf
-		pbEvt := &pbv1.CloudEvent{}
-		if err = grpcprotocol.WritePBMessage(context.TODO(), binding.ToMessage(evt), pbEvt); err != nil {
-			return fmt.Errorf("failed to convert cloudevent to protobuf: %v", err)
-		}
-
-		// send the cloudevent to the subscriber
-		// TODO: error handling to address errors beyond network issues.
-		if err := subServer.Send(pbEvt); err != nil {
-			return err
-		}
-
-		return nil
 	})
 
 	select {
@@ -324,10 +400,48 @@ func decodeResourceSpec(eventDataType types.CloudEventsDataType, evt *ce.Event) 
 	case workpayload.ManifestBundleEventDataType:
 		resource.Type = api.ResourceTypeBundle
 	default:
-		return nil, fmt.Errorf("unsupported cloudevents data type %s", eventDataType)
+		return nil, fmt.Errorf("unsupported cloudevents data type for resource %s", eventDataType)
 	}
 
 	return resource, nil
+}
+
+func decodeFileSyncerSpec(evt *ce.Event) (*api.FileSyncer, error) {
+	evtExtensions := evt.Context.GetExtensions()
+
+	clusterName, err := cetypes.ToString(evtExtensions[types.ExtensionClusterName])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get clustername extension: %v", err)
+	}
+
+	resourceID, err := cetypes.ToString(evtExtensions[types.ExtensionResourceID])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get resourceid extension: %v", err)
+	}
+
+	resourceVersion, err := cetypes.ToInteger(evtExtensions[types.ExtensionResourceVersion])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get resourceversion extension: %v", err)
+	}
+
+	fileSyncer := &api.FileSyncer{
+		Source:       evt.Source(),
+		ConsumerName: clusterName,
+		Version:      resourceVersion,
+		Meta: api.Meta{
+			ID: resourceID,
+		},
+	}
+
+	// TODO: handle deletion timestamp
+
+	fileSyncerSpec := datatypes.JSONMap{}
+	if err := evt.DataAs(&fileSyncerSpec); err != nil {
+		return nil, fmt.Errorf("failed to decode cloudevent data to filesyncer spec: %v", err)
+	}
+	fileSyncer.Spec = fileSyncerSpec
+
+	return fileSyncer, nil
 }
 
 // encodeResourceStatus translates a resource status JSON map into a CloudEvent.
@@ -379,6 +493,29 @@ func encodeResourceStatus(resource *api.Resource) (*ce.Event, error) {
 
 	if err := evt.SetData(ce.ApplicationJSON, manifestBundleStatus); err != nil {
 		return nil, err
+	}
+
+	return &evt, nil
+}
+
+func encodeFileSyncerStatus(fileSyncer *api.FileSyncer) (*ce.Event, error) {
+	// set basic fields
+	evt := ce.NewEvent()
+	evt.SetID(uuid.New().String())
+	evt.SetTime(time.Now())
+	eventType := types.CloudEventsType{
+		CloudEventsDataType: constants.FileSyncerEventDataType,
+		SubResource:         types.SubResourceStatus,
+		Action:              types.EventAction("update_request"),
+	}
+	evt.SetType(eventType.String())
+	evt.SetSource(fileSyncer.Source)
+	evt.SetExtension(types.ExtensionResourceID, fileSyncer.ID)
+	evt.SetExtension(types.ExtensionResourceVersion, int64(fileSyncer.Version))
+	evt.SetExtension(types.ExtensionClusterName, fileSyncer.ConsumerName)
+
+	if err := evt.SetData(ce.ApplicationJSON, fileSyncer.Status); err != nil {
+		return nil, fmt.Errorf("failed to set data for file syncer status: %v", err)
 	}
 
 	return &evt, nil

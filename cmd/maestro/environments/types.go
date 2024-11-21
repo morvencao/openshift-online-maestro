@@ -54,6 +54,7 @@ type Services struct {
 	Events       EventServiceLocator
 	StatusEvents StatusEventServiceLocator
 	Consumers    ConsumerServiceLocator
+	FileSyncers  FileSyncerServiceLocator
 }
 
 type Clients struct {

@@ -47,6 +47,9 @@ nodes:
 EOF
 export KUBECONFIG=${PWD}/test/e2e/.kubeconfig
 
+kind load docker-image --name maestro eclipse-mosquitto:2.0.18
+kind load docker-image --name maestro postgres:14.2
+
 # 2. build maestro image and load to KinD cluster
 export namespace=maestro
 export image_tag=latest

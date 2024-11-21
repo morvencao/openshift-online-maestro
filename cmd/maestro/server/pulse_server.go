@@ -33,13 +33,13 @@ type EventServer interface {
 	Start(ctx context.Context)
 
 	// OnCreate handles the creation of a resource.
-	OnCreate(ctx context.Context, resourceID string) error
+	OnCreate(ctx context.Context, source, sourceID string) error
 
 	// OnUpdate handles updates to a resource.
-	OnUpdate(ctx context.Context, resourceID string) error
+	OnUpdate(ctx context.Context, source, sourceID string) error
 
 	// OnDelete handles the deletion of a resource.
-	OnDelete(ctx context.Context, resourceID string) error
+	OnDelete(ctx context.Context, source, sourceID string) error
 
 	// OnStatusUpdate handles status update events for a resource.
 	OnStatusUpdate(ctx context.Context, eventID, resourceID string) error
@@ -188,7 +188,7 @@ func (s *PulseServer) startSubscription(ctx context.Context) {
 			}
 
 			// handle the resource status update according status update type
-			if err := handleStatusUpdate(ctx, resource, s.resourceService, s.statusEventService); err != nil {
+			if err := handleResourceStatusUpdate(ctx, resource, s.resourceService, s.statusEventService); err != nil {
 				return fmt.Errorf("failed to handle resource status update %s: %s", resource.ID, err.Error())
 			}
 		default:
@@ -200,18 +200,18 @@ func (s *PulseServer) startSubscription(ctx context.Context) {
 }
 
 // OnCreate will be called on each new resource creation event inserted into db.
-func (s *PulseServer) OnCreate(ctx context.Context, resourceID string) error {
-	return s.sourceClient.OnCreate(ctx, resourceID)
+func (s *PulseServer) OnCreate(ctx context.Context, source, sourceID string) error {
+	return s.sourceClient.OnCreate(ctx, source, sourceID)
 }
 
 // OnUpdate will be called on each new resource update event inserted into db.
-func (s *PulseServer) OnUpdate(ctx context.Context, resourceID string) error {
-	return s.sourceClient.OnUpdate(ctx, resourceID)
+func (s *PulseServer) OnUpdate(ctx context.Context, source, sourceID string) error {
+	return s.sourceClient.OnUpdate(ctx, source, sourceID)
 }
 
 // OnDelete will be called on each new resource deletion event inserted into db.
-func (s *PulseServer) OnDelete(ctx context.Context, resourceID string) error {
-	return s.sourceClient.OnDelete(ctx, resourceID)
+func (s *PulseServer) OnDelete(ctx context.Context, source, sourceID string) error {
+	return s.sourceClient.OnDelete(ctx, source, sourceID)
 }
 
 // On StatusUpdate will be called on each new status event inserted into db.
@@ -256,14 +256,52 @@ func (s *PulseServer) OnStatusUpdate(ctx context.Context, eventID, resourceID st
 	return err
 }
 
-// handleStatusUpdate processes the resource status update from the agent.
+// TODO: add grpc subscription to filesyncer status with multiple maestro instances support
+func handleFileSyncerStatusUpdate(ctx context.Context, fileSyncer *api.FileSyncer, fileSyncerService services.FileSyncerService) (*api.FileSyncer, error) {
+	found, svcErr := fileSyncerService.Get(ctx, fileSyncer.ID)
+	if svcErr != nil {
+		if svcErr.Is404() {
+			if fileSyncer.Version == 0 {
+				// insert the file syncer if it is not found and the version is 0 as the status from agent for the first time reporting
+				fs, svcErr := fileSyncerService.Create(ctx, fileSyncer)
+				if svcErr != nil {
+					return nil, fmt.Errorf("failed to create file syncer for status %s: %s", fs.ID, svcErr.Error())
+				}
+				return fs, nil
+			} else {
+				log.Warning(fmt.Sprintf("skipping file syncer %s as it is not found", fileSyncer.ID))
+				return nil, fmt.Errorf("file syncer %s with version %d is not found", fileSyncer.ID, fileSyncer.Version)
+			}
+		}
+
+		return nil, fmt.Errorf("failed to get file syncer %s, %s", fileSyncer.ID, svcErr.Error())
+	}
+
+	if found.ConsumerName != fileSyncer.ConsumerName {
+		return nil, fmt.Errorf("unmatched consumer name %s for file syncer %s", fileSyncer.ConsumerName, fileSyncer.ID)
+	}
+
+	// set the filesyncer source and type back for broadcast
+	fileSyncer.Source = found.Source
+
+	// TODO: handle file syncer deletion
+
+	fs, _, svcErr := fileSyncerService.UpdateStatus(ctx, fileSyncer)
+	if svcErr != nil {
+		return nil, fmt.Errorf("failed to update file syncer status %s: %s", fs.ID, svcErr.Error())
+	}
+
+	return fs, nil
+}
+
+// handleResourceStatusUpdate processes the resource status update from the agent.
 // The resource argument contains the updated status.
 // The function performs the following steps:
 // 1. Verifies if the resource is still in the Maestro server and checks if the consumer name matches.
 // 2. Retrieves the resource from Maestro and fills back the work metadata from the spec event to the status event.
 // 3. Checks if the resource has been deleted from the agent. If so, creates a status event and deletes the resource from Maestro;
 // otherwise, updates the resource status and creates a status event.
-func handleStatusUpdate(ctx context.Context, resource *api.Resource, resourceService services.ResourceService, statusEventService services.StatusEventService) error {
+func handleResourceStatusUpdate(ctx context.Context, resource *api.Resource, resourceService services.ResourceService, statusEventService services.StatusEventService) error {
 	found, svcErr := resourceService.Get(ctx, resource.ID)
 	if svcErr != nil {
 		if svcErr.Is404() {

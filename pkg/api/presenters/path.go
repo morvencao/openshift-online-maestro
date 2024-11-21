@@ -23,6 +23,8 @@ func path(i interface{}) string {
 		return "resources"
 	case api.Consumer, *api.Consumer:
 		return "consumers"
+	case api.FileSyncer, *api.FileSyncer:
+		return "filesyncers"
 	case errors.ServiceError, *errors.ServiceError:
 		return "errors"
 	default:

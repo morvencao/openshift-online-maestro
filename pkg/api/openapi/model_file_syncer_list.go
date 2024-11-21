@@ -16,26 +16,26 @@ import (
 	"fmt"
 )
 
-// checks if the ConsumerList type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &ConsumerList{}
+// checks if the FileSyncerList type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &FileSyncerList{}
 
-// ConsumerList struct for ConsumerList
-type ConsumerList struct {
-	Kind  string     `json:"kind"`
-	Page  int32      `json:"page"`
-	Size  int32      `json:"size"`
-	Total int32      `json:"total"`
-	Items []Consumer `json:"items"`
+// FileSyncerList struct for FileSyncerList
+type FileSyncerList struct {
+	Kind  string       `json:"kind"`
+	Page  int32        `json:"page"`
+	Size  int32        `json:"size"`
+	Total int32        `json:"total"`
+	Items []FileSyncer `json:"items"`
 }
 
-type _ConsumerList ConsumerList
+type _FileSyncerList FileSyncerList
 
-// NewConsumerList instantiates a new ConsumerList object
+// NewFileSyncerList instantiates a new FileSyncerList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewConsumerList(kind string, page int32, size int32, total int32, items []Consumer) *ConsumerList {
-	this := ConsumerList{}
+func NewFileSyncerList(kind string, page int32, size int32, total int32, items []FileSyncer) *FileSyncerList {
+	this := FileSyncerList{}
 	this.Kind = kind
 	this.Page = page
 	this.Size = size
@@ -44,16 +44,16 @@ func NewConsumerList(kind string, page int32, size int32, total int32, items []C
 	return &this
 }
 
-// NewConsumerListWithDefaults instantiates a new ConsumerList object
+// NewFileSyncerListWithDefaults instantiates a new FileSyncerList object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewConsumerListWithDefaults() *ConsumerList {
-	this := ConsumerList{}
+func NewFileSyncerListWithDefaults() *FileSyncerList {
+	this := FileSyncerList{}
 	return &this
 }
 
 // GetKind returns the Kind field value
-func (o *ConsumerList) GetKind() string {
+func (o *FileSyncerList) GetKind() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -64,7 +64,7 @@ func (o *ConsumerList) GetKind() string {
 
 // GetKindOk returns a tuple with the Kind field value
 // and a boolean to check if the value has been set.
-func (o *ConsumerList) GetKindOk() (*string, bool) {
+func (o *FileSyncerList) GetKindOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -72,12 +72,12 @@ func (o *ConsumerList) GetKindOk() (*string, bool) {
 }
 
 // SetKind sets field value
-func (o *ConsumerList) SetKind(v string) {
+func (o *FileSyncerList) SetKind(v string) {
 	o.Kind = v
 }
 
 // GetPage returns the Page field value
-func (o *ConsumerList) GetPage() int32 {
+func (o *FileSyncerList) GetPage() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -88,7 +88,7 @@ func (o *ConsumerList) GetPage() int32 {
 
 // GetPageOk returns a tuple with the Page field value
 // and a boolean to check if the value has been set.
-func (o *ConsumerList) GetPageOk() (*int32, bool) {
+func (o *FileSyncerList) GetPageOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -96,12 +96,12 @@ func (o *ConsumerList) GetPageOk() (*int32, bool) {
 }
 
 // SetPage sets field value
-func (o *ConsumerList) SetPage(v int32) {
+func (o *FileSyncerList) SetPage(v int32) {
 	o.Page = v
 }
 
 // GetSize returns the Size field value
-func (o *ConsumerList) GetSize() int32 {
+func (o *FileSyncerList) GetSize() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -112,7 +112,7 @@ func (o *ConsumerList) GetSize() int32 {
 
 // GetSizeOk returns a tuple with the Size field value
 // and a boolean to check if the value has been set.
-func (o *ConsumerList) GetSizeOk() (*int32, bool) {
+func (o *FileSyncerList) GetSizeOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -120,12 +120,12 @@ func (o *ConsumerList) GetSizeOk() (*int32, bool) {
 }
 
 // SetSize sets field value
-func (o *ConsumerList) SetSize(v int32) {
+func (o *FileSyncerList) SetSize(v int32) {
 	o.Size = v
 }
 
 // GetTotal returns the Total field value
-func (o *ConsumerList) GetTotal() int32 {
+func (o *FileSyncerList) GetTotal() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -136,7 +136,7 @@ func (o *ConsumerList) GetTotal() int32 {
 
 // GetTotalOk returns a tuple with the Total field value
 // and a boolean to check if the value has been set.
-func (o *ConsumerList) GetTotalOk() (*int32, bool) {
+func (o *FileSyncerList) GetTotalOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -144,14 +144,14 @@ func (o *ConsumerList) GetTotalOk() (*int32, bool) {
 }
 
 // SetTotal sets field value
-func (o *ConsumerList) SetTotal(v int32) {
+func (o *FileSyncerList) SetTotal(v int32) {
 	o.Total = v
 }
 
 // GetItems returns the Items field value
-func (o *ConsumerList) GetItems() []Consumer {
+func (o *FileSyncerList) GetItems() []FileSyncer {
 	if o == nil {
-		var ret []Consumer
+		var ret []FileSyncer
 		return ret
 	}
 
@@ -160,7 +160,7 @@ func (o *ConsumerList) GetItems() []Consumer {
 
 // GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
-func (o *ConsumerList) GetItemsOk() ([]Consumer, bool) {
+func (o *FileSyncerList) GetItemsOk() ([]FileSyncer, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -168,11 +168,11 @@ func (o *ConsumerList) GetItemsOk() ([]Consumer, bool) {
 }
 
 // SetItems sets field value
-func (o *ConsumerList) SetItems(v []Consumer) {
+func (o *FileSyncerList) SetItems(v []FileSyncer) {
 	o.Items = v
 }
 
-func (o ConsumerList) MarshalJSON() ([]byte, error) {
+func (o FileSyncerList) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -180,7 +180,7 @@ func (o ConsumerList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o ConsumerList) ToMap() (map[string]interface{}, error) {
+func (o FileSyncerList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["kind"] = o.Kind
 	toSerialize["page"] = o.Page
@@ -190,7 +190,7 @@ func (o ConsumerList) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *ConsumerList) UnmarshalJSON(data []byte) (err error) {
+func (o *FileSyncerList) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -216,53 +216,53 @@ func (o *ConsumerList) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varConsumerList := _ConsumerList{}
+	varFileSyncerList := _FileSyncerList{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varConsumerList)
+	err = decoder.Decode(&varFileSyncerList)
 
 	if err != nil {
 		return err
 	}
 
-	*o = ConsumerList(varConsumerList)
+	*o = FileSyncerList(varFileSyncerList)
 
 	return err
 }
 
-type NullableConsumerList struct {
-	value *ConsumerList
+type NullableFileSyncerList struct {
+	value *FileSyncerList
 	isSet bool
 }
 
-func (v NullableConsumerList) Get() *ConsumerList {
+func (v NullableFileSyncerList) Get() *FileSyncerList {
 	return v.value
 }
 
-func (v *NullableConsumerList) Set(val *ConsumerList) {
+func (v *NullableFileSyncerList) Set(val *FileSyncerList) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableConsumerList) IsSet() bool {
+func (v NullableFileSyncerList) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableConsumerList) Unset() {
+func (v *NullableFileSyncerList) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableConsumerList(val *ConsumerList) *NullableConsumerList {
-	return &NullableConsumerList{value: val, isSet: true}
+func NewNullableFileSyncerList(val *FileSyncerList) *NullableFileSyncerList {
+	return &NullableFileSyncerList{value: val, isSet: true}
 }
 
-func (v NullableConsumerList) MarshalJSON() ([]byte, error) {
+func (v NullableFileSyncerList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableConsumerList) UnmarshalJSON(src []byte) error {
+func (v *NullableFileSyncerList) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

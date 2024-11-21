@@ -511,6 +511,219 @@ paths:
                 $ref: '#/components/schemas/Error'
     parameters:
       - $ref: '#/components/parameters/id'
+  /api/maestro/v1/filesyncers:
+    get:
+      summary: Returns a list of filesyncers
+      security:
+        - Bearer: []
+      responses:
+        '200':
+          description: A JSON array of filesyncer objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSyncerList'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/orderBy'
+        - $ref: '#/components/parameters/fields'
+    post:
+      summary: Create a new filesyncer
+      security:
+        - Bearer: []
+      requestBody:
+        description: File syncer data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileSyncer'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSyncer'
+        '400':
+          description: Validation errors occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: File syncer already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: An unexpected error occurred creating the file syncer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/maestro/v1/filesyncers/{id}:
+    get:
+      summary: Get a file syncer by id
+      security:
+        - Bearer: []
+      responses:
+        '200':
+          description: File syncer found by id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSyncer'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No file syncer with specified id exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Update a file syncer
+      security:
+        - Bearer: []
+      requestBody:
+        description: Updated file syncer data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileSyncerPatchRequest'
+      responses:
+        '200':
+          description: File syncer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSyncer'
+        '400':
+          description: Validation errors occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No file syncer with specified id exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: File syncer already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error updating file syncer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a file syncer
+      security:
+        - Bearer: []
+      responses:
+        '204':
+          description: File syncer deleted successfully
+        '400':
+          description: Validation errors occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No file syncer with specified id exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error deleting file syncer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    parameters:
+      - $ref: '#/components/parameters/id'
 components:
   securitySchemes:
     Bearer:
@@ -688,6 +901,68 @@ components:
           type: object
           additionalProperties:
             type: string
+    FileSyncer:
+      allOf:
+        - $ref: '#/components/schemas/ObjectReference'
+        - type: object
+          properties:
+            consumer_name:
+              type: string
+            version:
+              type: integer
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            deleted_at:
+              type: string
+              format: date-time
+            spec:
+              type: object
+            status:
+              type: object
+    FileSyncerSpec:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileObject'
+    FileObject:
+      type: object
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+        verfication:
+          type: string
+        path:
+          type: string
+        mode:
+          type: integer
+        overwrite:
+          type: boolean
+        user:
+          type: string
+        group:
+          type: string
+    FileSyncerPatchRequest:
+      type: object
+      properties:
+        spec:
+          type: object
+    FileSyncerList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/FileSyncer'
   parameters:
     id:
       name: id

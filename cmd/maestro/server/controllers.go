@@ -30,6 +30,15 @@ func NewControllersServer(eventServer EventServer) *ControllersServer {
 		},
 	})
 
+	s.KindControllerManager.Add(&controllers.ControllerConfig{
+		Source: "FileSyncers",
+		Handlers: map[api.EventType][]controllers.ControllerHandlerFunc{
+			api.CreateEventType: {eventServer.OnCreate},
+			api.UpdateEventType: {eventServer.OnUpdate},
+			api.DeleteEventType: {eventServer.OnDelete},
+		},
+	})
+
 	s.StatusController.Add(map[api.StatusEventType][]controllers.StatusHandlerFunc{
 		api.StatusUpdateEventType: {eventServer.OnStatusUpdate},
 		api.StatusDeleteEventType: {eventServer.OnStatusUpdate},

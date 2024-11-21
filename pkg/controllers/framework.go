@@ -45,7 +45,7 @@ var logger = maestrologger.NewOCMLogger(context.Background())
 // events sync will help us to handle unexpected errors (e.g. sever restart), it ensures we will not miss any events
 var defaultEventsSyncPeriod = 10 * time.Hour
 
-type ControllerHandlerFunc func(ctx context.Context, id string) error
+type ControllerHandlerFunc func(ctx context.Context, source, sourceID string) error
 
 type ControllerConfig struct {
 	Source   string
@@ -153,7 +153,7 @@ func (km *KindControllerManager) handleEvent(id string) error {
 	}
 
 	for _, fn := range handlerFns {
-		err := fn(reqContext, event.SourceID)
+		err := fn(reqContext, event.Source, event.SourceID)
 		if err != nil {
 			return fmt.Errorf("error handing event %s, %s, %s: %s", event.Source, event.EventType, id, err)
 		}

@@ -110,6 +110,9 @@ func newAuthUnaryInterceptor(authNType string, authorizer grpcauthorizer.GRPCAut
 				klog.Errorf("unable to get user and groups from certificate: %v", err)
 				return nil, err
 			}
+		case "mock":
+			user = "mock"
+			groups = []string{"mock-group"}
 		default:
 			return nil, fmt.Errorf("unsupported authentication type %s", authNType)
 		}

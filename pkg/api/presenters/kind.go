@@ -17,6 +17,10 @@ func ObjectKind(i interface{}) *string {
 		result = "Resource"
 	case api.ResourceList, *api.ResourceList, []api.Resource, []*api.Resource:
 		result = "ResourceList"
+	case api.FileSyncer, *api.FileSyncer:
+		result = "FileSyncer"
+	case api.FileSyncerList, *api.FileSyncerList, []api.FileSyncer, []*api.FileSyncer:
+		result = "FileSyncerList"
 	case errors.ServiceError, *errors.ServiceError:
 		result = "Error"
 	}

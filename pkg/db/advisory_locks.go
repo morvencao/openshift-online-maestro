@@ -18,11 +18,13 @@ type (
 )
 
 const (
-	Migrations     LockType = "migrations"
-	Resources      LockType = "resources"
-	ResourceStatus LockType = "resource_status"
-	Events         LockType = "events"
-	Instances      LockType = "instances"
+	Migrations       LockType = "migrations"
+	Resources        LockType = "resources"
+	ResourceStatus   LockType = "resource_status"
+	Events           LockType = "events"
+	Instances        LockType = "instances"
+	FileSyncers      LockType = "filesyncers"
+	FileSyncerStatus LockType = "filesyncer_status"
 )
 
 // LockFactory provides the blocking/unblocking locks based on PostgreSQL advisory lock.

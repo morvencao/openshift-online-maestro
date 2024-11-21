@@ -39,8 +39,13 @@ func NewSourceClientMock(resourceService services.ResourceService) SourceClient 
 	}
 }
 
-func (s *SourceClientMock) OnCreate(ctx context.Context, id string) error {
-	resource, serviceErr := s.ResourceService.Get(ctx, id)
+func (s *SourceClientMock) OnCreate(ctx context.Context, source, sourceID string) error {
+	// TODO: handle file syncer create
+	if source == "FileSyncers" {
+		return nil
+	}
+
+	resource, serviceErr := s.ResourceService.Get(ctx, sourceID)
 	if serviceErr != nil {
 		return fmt.Errorf("failed to get resource: %v", serviceErr)
 	}
@@ -78,8 +83,13 @@ func (s *SourceClientMock) OnCreate(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *SourceClientMock) OnUpdate(ctx context.Context, id string) error {
-	resource, serviceErr := s.ResourceService.Get(ctx, id)
+func (s *SourceClientMock) OnUpdate(ctx context.Context, source, sourceID string) error {
+	// TODO: handle file syncer update
+	if source == "FileSyncers" {
+		return nil
+	}
+
+	resource, serviceErr := s.ResourceService.Get(ctx, sourceID)
 	if serviceErr != nil {
 		return fmt.Errorf("failed to get resource: %v", serviceErr)
 	}
@@ -136,8 +146,13 @@ func (s *SourceClientMock) OnUpdate(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *SourceClientMock) OnDelete(ctx context.Context, id string) error {
-	resource, serviceErr := s.ResourceService.Get(ctx, id)
+func (s *SourceClientMock) OnDelete(ctx context.Context, source, sourceID string) error {
+	// TODO: handle file syncer update
+	if source == "FileSyncers" {
+		return nil
+	}
+
+	resource, serviceErr := s.ResourceService.Get(ctx, sourceID)
 	if serviceErr != nil {
 		return fmt.Errorf("failed to get resource: %v", serviceErr)
 	}

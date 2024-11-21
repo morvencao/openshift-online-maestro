@@ -55,3 +55,15 @@ func NewConsumerServiceLocator(env *Env) ConsumerServiceLocator {
 		)
 	}
 }
+
+type FileSyncerServiceLocator func() services.FileSyncerService
+
+func NewFileSyncerServiceLocator(env *Env) FileSyncerServiceLocator {
+	return func() services.FileSyncerService {
+		return services.NewFileSyncerService(
+			db.NewAdvisoryLockFactory(env.Database.SessionFactory),
+			dao.NewFileSyncerDao(&env.Database.SessionFactory),
+			env.Services.Events(),
+		)
+	}
+}

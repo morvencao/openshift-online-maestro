@@ -1,0 +1,19 @@
+{
+    "id": "7e59ert5lql33muegh956onj7eo3edvmki245et62t7avqbuhtm0",
+    "consumer_name": "7e59ert5lql33muegh956onj7eo3edvmki245et62t7avqbuhtm0",
+    "version": 1,
+    "spec": {
+        "files":
+        [
+            {
+                "name": "spec",
+                "path": "/var/lib/flightctl/desired.json",
+                "content": "{\"renderedVersion\":\"1\",\"applications\":[{\"name\":\"wordpress\",\"image\":\"quay.io\/morvencao\/wordpress-app:latest\",\"envVars\":{\"WORDPRESS_DB_HOST\":\"mysql\",\"WORDPRESS_DB_USER\":\"user\",\"WORDPRESS_DB_PASSWORD\":\"password\"}}]}",
+                "overwrite": true,
+                "user": "root",
+                "group": "root",
+                "mode": 644
+            }
+        ]
+    }
+}

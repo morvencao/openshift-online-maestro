@@ -1,0 +1,16 @@
+{
+    "spec": {
+        "files":
+        [
+            {
+                "name": "spec",
+                "path": "/etc/nginx/nginx.conf",
+                "content": "worker_processes  1;",
+                "overwrite": true,
+                "user": "nginx",
+                "group": "nginx",
+                "mode": 644
+            }
+        ]
+    }
+}
