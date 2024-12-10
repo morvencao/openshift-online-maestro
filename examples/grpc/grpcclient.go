@@ -21,9 +21,10 @@ var (
 	tls                = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
 	caFile             = flag.String("ca_file", "", "The absolute file path containing the CA root cert file")
 	serverAddr         = flag.String("grpc_server", "localhost:8090", "The server address in the format of host:port")
-	serverHostOverride = flag.String("server_host_override", "x.test.example.com", "The server name used to verify the hostname returned by the TLS handshake")
+	serverHostOverride = flag.String("server_host_override", "", "The server name used to verify the hostname returned by the TLS handshake")
 	cloudEventFile     = flag.String("cloudevents_json_file", "", "The absolute file path containing the CloudEvent resource")
 	subscribeStatus    = flag.Bool("subscribe_status", false, "If true, subscribe to the CloudEvent resource status.")
+	subscribeSource    = flag.String("subscribe_source", "grpc", "The subscribe source of the CloudEvent resource status.")
 )
 
 func main() {
@@ -73,7 +74,7 @@ func main() {
 
 	if *subscribeStatus {
 		subReq := &pbv1.SubscriptionRequest{
-			Source: "grpc",
+			Source: *subscribeSource,
 		}
 
 		subClient, err := client.Subscribe(ctx, subReq)

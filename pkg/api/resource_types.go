@@ -24,6 +24,7 @@ type ResourceType string
 const (
 	ResourceTypeSingle ResourceType = "Single"
 	ResourceTypeBundle ResourceType = "Bundle"
+	ResourceTypeJSON   ResourceType = "Json"
 )
 
 type Resource struct {

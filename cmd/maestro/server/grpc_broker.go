@@ -2,8 +2,11 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -13,6 +16,7 @@ import (
 	cetypes "github.com/cloudevents/sdk-go/v2/types"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"k8s.io/klog/v2"
@@ -23,6 +27,7 @@ import (
 	workpayload "open-cluster-management.io/sdk-go/pkg/cloudevents/work/payload"
 
 	"github.com/openshift-online/maestro/pkg/api"
+	"github.com/openshift-online/maestro/pkg/client/cloudevents"
 	"github.com/openshift-online/maestro/pkg/dao"
 	"github.com/openshift-online/maestro/pkg/event"
 	"github.com/openshift-online/maestro/pkg/logger"
@@ -72,7 +77,49 @@ func NewGRPCBroker(eventBroadcaster *event.EventBroadcaster) EventServer {
 		MaxConnectionAge: config.MaxConnectionAge,
 	}))
 
-	klog.Infof("Serving gRPC broker without TLS at %s", config.BrokerBindPort)
+	if !config.DisableTLS {
+		// Check tls cert and key path path
+		if config.BrokerTLSCertFile == "" || config.BrokerTLSKeyFile == "" {
+			check(
+				fmt.Errorf("unspecified required --grpc-broker-tls-cert-file, --grpc-broker-tls-key-file"),
+				"Can't start gRPC broker",
+			)
+		}
+		// Serve with TLS
+		serverCerts, err := tls.LoadX509KeyPair(config.BrokerTLSCertFile, config.BrokerTLSKeyFile)
+		if err != nil {
+			check(fmt.Errorf("failed to load broker certificates: %v", err), "Can't start gRPC broker")
+		}
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{serverCerts},
+			MinVersion:   tls.VersionTLS13,
+			MaxVersion:   tls.VersionTLS13,
+		}
+		if config.BrokerClientCAFile != "" {
+			certPool, err := x509.SystemCertPool()
+			if err != nil {
+				check(fmt.Errorf("failed to load system cert pool: %v", err), "Can't start gRPC broker")
+			}
+
+			caPEM, err := os.ReadFile(config.BrokerClientCAFile)
+			if err != nil {
+				check(fmt.Errorf("failed to read broker client CA file: %v", err), "Can't start gRPC broker")
+			}
+
+			if ok := certPool.AppendCertsFromPEM(caPEM); !ok {
+				check(fmt.Errorf("failed to append broker client CA to cert pool"), "Can't start gRPC broker")
+			}
+
+			tlsConfig.ClientCAs = certPool
+			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+		}
+
+		grpcServerOptions = append(grpcServerOptions, grpc.Creds(credentials.NewTLS(tlsConfig)))
+		klog.Infof("Serving gRPC broker with TLS at %s", config.ServerBindPort)
+	} else {
+		klog.Infof("Serving gRPC broker without TLS at %s", config.ServerBindPort)
+	}
+
 	sessionFactory := env().Database.SessionFactory
 	return &GRPCBroker{
 		grpcServer:         grpc.NewServer(grpcServerOptions...),
@@ -118,7 +165,7 @@ func (bkr *GRPCBroker) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 		return nil, fmt.Errorf("failed to parse cloud event type %s, %v", evt.Type(), err)
 	}
 
-	klog.V(4).Infof("receive the event with grpc broker, %s", evt)
+	klog.V(4).Infof("received the event with grpc broker, %s", evt)
 
 	// handler resync request
 	if eventType.Action == types.ResyncRequestAction {
@@ -156,7 +203,7 @@ func (bkr *GRPCBroker) register(clusterName string, handler resourceHandler) (st
 		errChan:     errChan,
 	}
 
-	klog.V(4).Infof("register a subscriber %s (cluster name = %s)", id, clusterName)
+	klog.V(4).Infof("registered a subscriber %s (cluster name = %s)", id, clusterName)
 
 	return id, errChan
 }
@@ -166,9 +213,9 @@ func (bkr *GRPCBroker) unregister(id string) {
 	bkr.mu.Lock()
 	defer bkr.mu.Unlock()
 
-	klog.V(10).Infof("unregister subscriber %s", id)
 	close(bkr.subscribers[id].errChan)
 	delete(bkr.subscribers, id)
+	klog.V(4).Infof("unregistered subscriber %s", id)
 }
 
 // Subscribe in stub implementation for maestro agent subscribe resource spec from maestro server.
@@ -186,7 +233,7 @@ func (bkr *GRPCBroker) Subscribe(subReq *pbv1.SubscriptionRequest, subServer pbv
 			return fmt.Errorf("failed to encode resource %s to cloudevent: %v", res.ID, err)
 		}
 
-		klog.V(4).Infof("send the event to spec subscribers, %s", evt)
+		klog.V(4).Infof("sent the event to spec subscribers, %s", evt)
 
 		// WARNING: don't use "pbEvt, err := pb.ToProto(evt)" to convert cloudevent to protobuf
 		pbEvt := &pbv1.CloudEvent{}
@@ -205,7 +252,7 @@ func (bkr *GRPCBroker) Subscribe(subReq *pbv1.SubscriptionRequest, subServer pbv
 
 	select {
 	case err := <-errChan:
-		klog.Errorf("unregister subscriber %s, error= %v", subscriberID, err)
+		klog.Errorf("error occurred while sending resource spec to subscriber %s: %v", subscriberID, err)
 		bkr.unregister(subscriberID)
 		return err
 	case <-subServer.Context().Done():
@@ -253,6 +300,8 @@ func decodeResourceStatus(eventDataType types.CloudEventsDataType, evt *ce.Event
 		resource.Type = api.ResourceTypeSingle
 	case workpayload.ManifestBundleEventDataType:
 		resource.Type = api.ResourceTypeBundle
+	case cloudevents.JSONObjEventDataType:
+		resource.Type = api.ResourceTypeJSON
 	default:
 		return nil, fmt.Errorf("unsupported cloudevents data type %s", eventDataType)
 	}
@@ -274,6 +323,8 @@ func encodeResourceSpec(resource *api.Resource) (*ce.Event, error) {
 	}
 	if resource.Type == api.ResourceTypeBundle {
 		eventType.CloudEventsDataType = workpayload.ManifestBundleEventDataType
+	} else if resource.Type == api.ResourceTypeJSON {
+		eventType.CloudEventsDataType = cloudevents.JSONObjEventDataType
 	}
 	evt.SetType(eventType.String())
 	evt.SetSource("maestro")
@@ -303,6 +354,8 @@ func (bkr *GRPCBroker) respondResyncSpecRequest(ctx context.Context, eventDataTy
 	resyncType := api.ResourceTypeSingle
 	if eventDataType == workpayload.ManifestBundleEventDataType {
 		resyncType = api.ResourceTypeBundle
+	} else if eventDataType == cloudevents.JSONObjEventDataType {
+		resyncType = api.ResourceTypeJSON
 	}
 
 	resourceVersions, err := payload.DecodeSpecResyncRequest(*evt)

@@ -174,7 +174,7 @@ func (svr *GRPCServer) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 		return nil, fmt.Errorf("failed to parse cloud event type %s, %v", evt.Type(), err)
 	}
 
-	klog.V(4).Infof("receive the event with grpc server, %s", evt)
+	klog.V(4).Infof("received the event with grpc server, %s", evt)
 
 	// handler resync request
 	if eventType.Action == types.ResyncRequestAction {
@@ -197,6 +197,19 @@ func (svr *GRPCServer) Publish(ctx context.Context, pubReq *pbv1.PublishRequest)
 			return nil, fmt.Errorf("failed to create resource: %v", err)
 		}
 	case common.UpdateRequestAction:
+		if res.Type == api.ResourceTypeJSON {
+			if _, svcErr := svr.resourceService.Get(ctx, res.ID); svcErr != nil {
+				if svcErr.Is404() {
+					// the resource is not found, create it
+					_, err := svr.resourceService.Create(ctx, res)
+					if err != nil {
+						return nil, fmt.Errorf("failed to create resource: %v", err)
+					}
+				} else {
+					return nil, fmt.Errorf("failed to get resource %s: %v", res.ID, svcErr)
+				}
+			}
+		}
 		if res.Type == api.ResourceTypeBundle {
 			found, err := svr.resourceService.Get(ctx, res.ID)
 			if err != nil {
@@ -247,7 +260,7 @@ func (svr *GRPCServer) Subscribe(subReq *pbv1.SubscriptionRequest, subServer pbv
 			return fmt.Errorf("failed to encode resource %s to cloudevent: %v", res.ID, err)
 		}
 
-		klog.V(4).Infof("send the event to status subscribers, %s", evt)
+		klog.V(4).Infof("sent the event to status subscribers, %s", evt)
 
 		// WARNING: don't use "pbEvt, err := pb.ToProto(evt)" to convert cloudevent to protobuf
 		pbEvt := &pbv1.CloudEvent{}
@@ -266,11 +279,10 @@ func (svr *GRPCServer) Subscribe(subReq *pbv1.SubscriptionRequest, subServer pbv
 
 	select {
 	case err := <-errChan:
-		klog.Errorf("unregister client %s, error= %v", clientID, err)
+		klog.Errorf("error occurred while sending resource status to client %s: %v", clientID, err)
 		svr.eventBroadcaster.Unregister(clientID)
 		return err
 	case <-subServer.Context().Done():
-		klog.V(10).Infof("unregister client %s", clientID)
 		svr.eventBroadcaster.Unregister(clientID)
 		return nil
 	}
@@ -323,6 +335,8 @@ func decodeResourceSpec(eventDataType types.CloudEventsDataType, evt *ce.Event) 
 		resource.Type = api.ResourceTypeSingle
 	case workpayload.ManifestBundleEventDataType:
 		resource.Type = api.ResourceTypeBundle
+	case cloudevents.JSONObjEventDataType:
+		resource.Type = api.ResourceTypeJSON
 	default:
 		return nil, fmt.Errorf("unsupported cloudevents data type %s", eventDataType)
 	}
@@ -332,8 +346,8 @@ func decodeResourceSpec(eventDataType types.CloudEventsDataType, evt *ce.Event) 
 
 // encodeResourceStatus translates a resource status JSON map into a CloudEvent.
 func encodeResourceStatus(resource *api.Resource) (*ce.Event, error) {
-	if resource.Type == api.ResourceTypeSingle {
-		// single resource, return the status directly
+	if resource.Type == api.ResourceTypeSingle || resource.Type == api.ResourceTypeJSON {
+		// single or json resource, return the status directly
 		return api.JSONMAPToCloudEvent(resource.Status)
 	}
 
@@ -409,6 +423,8 @@ func (svr *GRPCServer) respondResyncStatusRequest(ctx context.Context, eventData
 	resyncType := api.ResourceTypeSingle
 	if eventDataType == workpayload.ManifestBundleEventDataType {
 		resyncType = api.ResourceTypeBundle
+	} else if eventDataType == cloudevents.JSONObjEventDataType {
+		resyncType = api.ResourceTypeJSON
 	}
 
 	for _, obj := range objs {

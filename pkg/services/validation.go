@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -64,6 +65,10 @@ func ValidateManifest(resType api.ResourceType, manifest datatypes.JSONMap) erro
 			if err := ValidateObject(obj); err != nil {
 				return err
 			}
+		}
+	case api.ResourceTypeJSON:
+		if _, err := json.Marshal(manifest); err != nil {
+			return fmt.Errorf("failed to marshal manifest to JSON: %v", err)
 		}
 	default:
 		return fmt.Errorf("unknown resource type: %s", resType)

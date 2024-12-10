@@ -12,9 +12,12 @@ type GRPCServerConfig struct {
 	DisableTLS            bool          `json:"disable_grpc_tls"`
 	TLSCertFile           string        `json:"grpc_tls_cert_file"`
 	TLSKeyFile            string        `json:"grpc_tls_key_file"`
+	BrokerTLSCertFile     string        `json:"grpc_broker_tls_cert_file"`
+	BrokerTLSKeyFile      string        `json:"grpc_broker_tls_key_file"`
 	GRPCAuthNType         string        `json:"grpc_authn_type"`
 	GRPCAuthorizerConfig  string        `json:"grpc_authorizer_config"`
 	ClientCAFile          string        `json:"grpc_client_ca_file"`
+	BrokerClientCAFile    string        `json:"grpc_broker_client_ca_file"`
 	ServerBindPort        string        `json:"server_bind_port"`
 	BrokerBindPort        string        `json:"broker_bind_port"`
 	MaxConcurrentStreams  uint32        `json:"max_concurrent_steams"`
@@ -44,7 +47,10 @@ func (s *GRPCServerConfig) AddFlags(fs *pflag.FlagSet) {
 	fs.BoolVar(&s.DisableTLS, "disable-grpc-tls", false, "Disable TLS for gRPC server, default is false")
 	fs.StringVar(&s.TLSCertFile, "grpc-tls-cert-file", "", "The path to the tls.crt file")
 	fs.StringVar(&s.TLSKeyFile, "grpc-tls-key-file", "", "The path to the tls.key file")
+	fs.StringVar(&s.BrokerTLSCertFile, "grpc-broker-tls-cert-file", "", "The path to the broker tls.crt file")
+	fs.StringVar(&s.BrokerTLSKeyFile, "grpc-broker-tls-key-file", "", "The path to the broker tls.key file")
 	fs.StringVar(&s.GRPCAuthNType, "grpc-authn-type", "mock", "Specify the gRPC authentication type (e.g., mock, mtls or token)")
 	fs.StringVar(&s.GRPCAuthorizerConfig, "grpc-authorizer-config", "", "Path to the gRPC authorizer configuration file")
 	fs.StringVar(&s.ClientCAFile, "grpc-client-ca-file", "", "The path to the client ca file, must specify if using mtls authentication type")
+	fs.StringVar(&s.BrokerClientCAFile, "grpc-broker-client-ca-file", "", "The path to the broker client ca file")
 }
