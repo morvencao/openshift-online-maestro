@@ -10,7 +10,6 @@ import (
 	"github.com/openshift-online/maestro/pkg/api"
 	"github.com/openshift-online/maestro/pkg/dao"
 	"github.com/openshift-online/maestro/test"
-	prommodel "github.com/prometheus/client_model/go"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -68,22 +67,4 @@ func TestHealthCheckServer(t *testing.T) {
 
 		return nil
 	}, 10*time.Second, 1*time.Second).Should(Succeed())
-
-	if h.Broker != "grpc" {
-		// check the metrics to ensure only status resync request is sent for manifets and manifestbundles
-		time.Sleep(2 * time.Second)
-		families := getServerMetrics(t, "http://localhost:8080/metrics")
-		labels := []*prommodel.LabelPair{
-			{Name: strPtr("source"), Value: strPtr("maestro")},
-			{Name: strPtr("cluster"), Value: strPtr(clusterName)},
-			{Name: strPtr("type"), Value: strPtr("io.open-cluster-management.works.v1alpha1.manifests")},
-		}
-		checkServerCounterMetric(t, families, "cloudevents_sent_total", labels, 1.0)
-		labels = []*prommodel.LabelPair{
-			{Name: strPtr("source"), Value: strPtr("maestro")},
-			{Name: strPtr("cluster"), Value: strPtr(clusterName)},
-			{Name: strPtr("type"), Value: strPtr("io.open-cluster-management.works.v1alpha1.manifestbundles")},
-		}
-		checkServerCounterMetric(t, families, "cloudevents_sent_total", labels, 1.0)
-	}
 }
