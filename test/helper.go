@@ -25,8 +25,9 @@ import (
 	"open-cluster-management.io/sdk-go/pkg/cloudevents/clients/options"
 	"open-cluster-management.io/sdk-go/pkg/cloudevents/clients/work"
 	"open-cluster-management.io/sdk-go/pkg/cloudevents/clients/work/agent/codec"
+	workpayload "open-cluster-management.io/sdk-go/pkg/cloudevents/clients/work/payload"
 	"open-cluster-management.io/sdk-go/pkg/cloudevents/clients/work/store"
-	"open-cluster-management.io/sdk-go/pkg/cloudevents/generic"
+	ceclients "open-cluster-management.io/sdk-go/pkg/cloudevents/generic/clients"
 	"open-cluster-management.io/sdk-go/pkg/cloudevents/generic/options/grpc"
 	grpcoptions "open-cluster-management.io/sdk-go/pkg/cloudevents/generic/options/grpc"
 	"open-cluster-management.io/sdk-go/pkg/cloudevents/generic/options/mqtt"
@@ -78,7 +79,7 @@ type Helper struct {
 	Broker            string
 	EventBroadcaster  *event.EventBroadcaster
 	Store             *MemoryStore
-	GRPCSourceClient  *generic.CloudEventSourceClient[*api.Resource]
+	GRPCSourceClient  *ceclients.CloudEventSourceClient[*api.Resource]
 	DBFactory         db.SessionFactory
 	AppConfig         *config.ApplicationConfig
 	APIServer         server.Server
@@ -335,9 +336,9 @@ func (helper *Helper) StartGRPCResourceSourceClient() {
 	store := NewStore()
 	grpcOptions := &grpc.GRPCOptions{Dialer: &grpc.GRPCDialer{}}
 	grpcOptions.Dialer.URL = fmt.Sprintf("%s:%s", helper.Env().Config.HTTPServer.Hostname, helper.Env().Config.GRPCServer.ServerBindPort)
-	sourceClient, err := generic.NewCloudEventSourceClient[*api.Resource](
+	sourceClient, err := ceclients.NewCloudEventSourceClient[*api.Resource](
 		helper.Ctx,
-		grpcoptions.NewSourceOptions(grpcOptions, source),
+		grpcoptions.NewSourceOptions(grpcOptions, source, workpayload.ManifestBundleEventDataType),
 		store,
 		resourceStatusHashGetter,
 		cloudevents.NewCodec(source),
